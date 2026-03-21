@@ -14,8 +14,51 @@
   --color-gold-900: #62401f;
   --color-gold-950: #38210e;
 
+  --color-luxe-50: #fdf8f6;
+  --color-luxe-100: #f9ede8;
+  --color-luxe-200: #f3d9d0;
+  --color-luxe-300: #e9bfae;
+  --color-luxe-400: #dea08a;
+  --color-luxe-500: #c97b5e;
+  --color-luxe-600: #b65e42;
+  --color-luxe-700: #984d35;
+  --color-luxe-800: #7e422f;
+  --color-luxe-900: #6a3a2b;
+  --color-luxe-950: #391c13;
+
   --font-serif: "Playfair Display", serif;
   --font-sans: "Inter", sans-serif;
+
+  --animate-fade-in: fade-in 0.6s ease-out both;
+  --animate-slide-up: slide-up 0.6s ease-out both;
+  --animate-slide-down: slide-down 0.4s ease-out both;
+  --animate-scale-in: scale-in 0.4s ease-out both;
+  --animate-shimmer: shimmer 2s infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 :root {
@@ -23,14 +66,49 @@
   --foreground: #111111;
 }
 
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d4 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 999px;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @layer base {
   h1, h2, h3, h4 {
     font-family: var(--font-serif);
   }
+
+  ::selection {
+    background-color: #c5973440;
+    color: #38210e;
+  }
+}
+
+/* Hide scrollbar for carousel / horizontal scroll */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

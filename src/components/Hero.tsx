@@ -1,86 +1,90 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useHeroConfig } from '@/hooks/useHeroConfig';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const Hero = () => {
+  const { config, loading } = useHeroConfig();
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const slides = [
-    { 
-      id: 1, 
-      image: "/summer_hero_1.png",
-      mobileImage: "/summer_hero_3.png",
-      position: "left"
-    },
-    { 
-      id: 2, 
-      image: "/summer_hero_2.png",
-      mobileImage: "/summer_hero_4.png",
-      position: "left" 
-    }
-  ];
+  const slides = config.slides || [];
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 6000);
-    return () => clearInterval(timer);
+  const goNext = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
   }, [slides.length]);
 
-  return (
-    <section className="relative w-full h-[75vh] md:h-[85vh] bg-[#fafafa] overflow-hidden flex items-center pt-16 mt-4">
-      <div className="container mx-auto px-4 md:px-12 h-full relative">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentSlide}
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-            className="w-full h-full flex items-center"
-          >
-            {/* Background Image Container */}
-            <div className="absolute inset-0 w-full h-full pointer-events-none flex items-center justify-center bg-[#fafafa]">
-              {/* Desktop Image */}
-              <img 
-                src={slides[currentSlide].image} 
-                alt={`Slide ${slides[currentSlide].id}`} 
-                className="hidden md:block w-full h-full object-contain p-4 drop-shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
-              />
-              {/* Mobile Image - Using desktop image as fallback if mobile is missing */}
-              <img 
-                src={slides[currentSlide].mobileImage} 
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = slides[currentSlide].image;
-                }}
-                alt={`Slide ${slides[currentSlide].id}`} 
-                className="block md:hidden w-full h-full object-cover rounded-3xl overflow-hidden shadow-2xl scale-[0.95]"
-              />
-            </div>
-          </motion.div>
-        </AnimatePresence>
+  const goPrev = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  }, [slides.length]);
 
-        {/* Navigation Controls */}
-        <div className="absolute bottom-8 right-8 md:bottom-12 md:right-12 flex items-center gap-6 z-20">
-          <button 
-            onClick={() => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)}
-            className="w-10 h-10 border border-[#2d3436]/10 flex items-center justify-center hover:bg-[#2d3436] hover:text-white transition-all rounded-full bg-white/80 backdrop-blur-sm"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <div className="text-[11px] font-bold tracking-[0.2em] text-[#2d3436]">
-            {String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
-          </div>
-          <button 
-            onClick={() => setCurrentSlide((prev) => (prev + 1) % slides.length)}
-            className="w-10 h-10 border border-[#2d3436]/10 flex items-center justify-center hover:bg-[#2d3436] hover:text-white transition-all rounded-full bg-white/80 backdrop-blur-sm"
-          >
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const timer = setInterval(goNext, 5000);
+    return () => clearInterval(timer);
+  }, [slides.length, goNext]);
+
+  if (loading) {
+    return (
+      <div className="w-full aspect-[16/7] md:aspect-[16/6] bg-[#fafafa] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-black/10 border-t-black/40 rounded-full animate-spin" />
       </div>
+    );
+  }
+
+  if (slides.length === 0) return null;
+
+  const slide = slides[currentSlide];
+
+  return (
+    <section className="relative w-full overflow-hidden bg-white mt-[72px] md:mt-[105px]">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentSlide}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}
+          className="w-full"
+        >
+          {/* Desktop Image */}
+          <img 
+            src={slide.image} 
+            alt={`Slide ${currentSlide + 1}`}
+            className="hidden md:block w-full h-[65vh] xl:h-[75vh] max-h-[650px] object-cover object-center" 
+          />
+          {/* Mobile Image */}
+          <img 
+            src={slide.mobileImage || slide.image} 
+            alt={`Slide ${currentSlide + 1}`}
+            className="block md:hidden w-full h-[60vh] max-h-[500px] object-cover object-top" 
+          />
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Navigation Arrows */}
+      {slides.length > 1 && (
+        <>
+          <button onClick={goPrev} className="absolute left-3 md:left-8 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-white/20 hover:bg-white/50 text-white hover:text-black rounded-full transition-all backdrop-blur-md z-20">
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button onClick={goNext} className="absolute right-3 md:right-8 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center bg-white/20 hover:bg-white/50 text-white hover:text-black rounded-full transition-all backdrop-blur-md z-20">
+            <ChevronRight className="w-5 h-5" />
+          </button>
+          
+          {/* Dots */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+            {slides.map((_, i) => (
+              <button 
+                key={i} 
+                onClick={() => setCurrentSlide(i)}
+                className={`rounded-full transition-all duration-300 ${i === currentSlide ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/40'}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </section>
   );
 };
