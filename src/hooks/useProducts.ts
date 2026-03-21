@@ -17,6 +17,7 @@ export interface Product {
   section: 'BESTSELLERS' | 'NEW ARRIVALS' | 'CRAZY DEALS';
   description?: string;
   notes?: string[];
+  sizes?: string[];
 }
 
 export const useProducts = () => {
