@@ -14,7 +14,7 @@ export const CrazyDeals = () => {
   if (loading || dealProducts.length === 0) return null;
 
   return (
-    <section className="w-full py-16 md:py-24 bg-gradient-to-b from-[#fef8f5] to-white">
+    <section className="w-full py-10 md:py-16 bg-gradient-to-b from-[#fef8f5] to-white">
       <div className="container mx-auto px-4 md:px-12">
         {/* Header */}
         <div className="text-center mb-12">
@@ -31,8 +31,8 @@ export const CrazyDeals = () => {
         </div>
 
         {/* Deal Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {dealProducts.slice(0, 6).map((deal, index) => {
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {dealProducts.slice(0, 3).map((deal, index) => {
             const discountPercent = deal.oldPrice > 0
               ? Math.round(((deal.oldPrice - deal.price) / deal.oldPrice) * 100)
               : 0;
@@ -96,7 +96,7 @@ export const CrazyDeals = () => {
         </div>
 
         {/* View All */}
-        <div className="text-center mt-12">
+        <div className="text-center mt-12 md:hidden">
           <Link 
             href="/deals"
             className="inline-flex items-center gap-3 bg-black text-white px-8 py-4 rounded-xl text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-black/90 transition-all group"

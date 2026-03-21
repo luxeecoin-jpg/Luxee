@@ -15,7 +15,7 @@ const NOTES = [
 
 export const ShopByNotes = () => {
   return (
-    <section className="w-full py-16 md:py-24 bg-[#fafafa]">
+    <section className="w-full py-10 md:py-16 bg-[#fafafa]">
       <div className="container mx-auto px-4 md:px-12 text-center">
         <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gold-600 block mb-3">Discover Your Scent</span>
         <h2 className="text-3xl md:text-5xl font-serif text-[#1a1a1a] tracking-tight mb-4">

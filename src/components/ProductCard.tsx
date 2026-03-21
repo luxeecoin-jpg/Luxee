@@ -40,7 +40,7 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
       className="group"
     >
       <Link href={`/product/${product.id}`} className="block h-full">
-        <div className="bg-white p-4 md:p-5 rounded-2xl border border-black/[0.04] hover:border-black/[0.08] transition-all duration-500 hover:shadow-[0_8px_40px_rgba(0,0,0,0.06)] flex flex-col h-full relative overflow-hidden">
+        <div className="bg-white p-3 md:p-4 rounded-2xl border border-black/[0.04] hover:border-black/[0.08] transition-all duration-500 hover:shadow-[0_8px_40px_rgba(0,0,0,0.06)] flex flex-col h-full relative overflow-hidden">
           
           {/* Badges */}
           <div className="absolute top-4 left-4 z-10 flex flex-col gap-1.5">
@@ -65,11 +65,11 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
           </button>
 
           {/* Image */}
-          <div className="relative aspect-square overflow-hidden rounded-xl mb-4 bg-[#fafafa]">
+          <div className="relative aspect-[4/5] max-h-[300px] md:max-h-[380px] overflow-hidden rounded-xl mb-3 bg-[#fafafa]">
             <img 
               src={product.image} 
               alt={product.name} 
-              className="w-full h-full object-contain mix-blend-multiply p-4 group-hover:scale-110 transition-transform duration-700"
+              className="w-full h-full object-contain mix-blend-multiply p-3 group-hover:scale-110 transition-transform duration-700"
             />
           </div>
 

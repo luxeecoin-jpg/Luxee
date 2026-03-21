@@ -1,9 +1,9 @@
 "use client";
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const CATEGORIES = [
   { 
@@ -37,9 +37,21 @@ const CATEGORIES = [
 ];
 
 export const FeaturedCategories = () => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = window.innerWidth < 768 ? 300 : 400;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
-    <section className="w-full py-16 md:py-24 bg-white">
-      <div className="container mx-auto px-4 md:px-12">
+    <section className="w-full py-10 md:py-16 bg-white overflow-hidden">
+      <div className="container mx-auto px-4 md:px-12 relative">
         <div className="text-center mb-12">
           <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-gold-600 block mb-3">Collections</span>
           <h2 className="text-3xl md:text-5xl font-serif text-[#1a1a1a] tracking-tight">
@@ -47,16 +59,38 @@ export const FeaturedCategories = () => {
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        {/* Navigation Arrows (Desktop) */}
+        <div className="hidden lg:block absolute top-[60%] -translate-y-1/2 left-0 z-10">
+          <button 
+            onClick={() => scroll('left')}
+            className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] text-black/40 hover:text-black hover:scale-110 transition-all -ml-6 border border-black/[0.04]"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="hidden lg:block absolute top-[60%] -translate-y-1/2 right-0 z-10">
+          <button 
+            onClick={() => scroll('right')}
+            className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] text-black/40 hover:text-black hover:scale-110 transition-all -mr-6 border border-black/[0.04]"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div 
+          ref={scrollRef}
+          className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-4 md:gap-6 pb-8 -mx-4 px-4 md:mx-0 md:px-0"
+        >
           {CATEGORIES.map((cat, index) => (
             <motion.div
               key={cat.name}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
+              className="min-w-[calc(50%-8px)] md:min-w-[calc(33.333%-16px)] lg:min-w-[calc(25%-18px)] snap-start shrink-0"
             >
-              <Link href={cat.href} className="block group">
-                <div className={`relative bg-gradient-to-br ${cat.bg} rounded-2xl overflow-hidden aspect-[3/4] md:aspect-[4/5] border border-black/[0.03]`}>
+              <Link href={cat.href} className="block group h-full">
+                <div className={`relative bg-gradient-to-br ${cat.bg} rounded-2xl overflow-hidden aspect-[3/4] md:aspect-[4/5] border border-black/[0.03] h-full`}>
                   {/* Image */}
                   <div className="absolute inset-0 flex items-center justify-center p-8 md:p-12">
                     <img 
