@@ -60,7 +60,7 @@ export const Bestsellers = () => {
 
         {/* Sub Tabs */}
         <div className="flex items-center justify-center gap-8 md:gap-12 mb-3">
-          {["HIM", "HER", "ATTAR", "GIFTING"].map(cat => (
+          {["HIM", "HER", "GIFTING"].map(cat => (
             <button 
               key={cat}
               onClick={() => setSubTab(cat)}

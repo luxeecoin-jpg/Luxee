@@ -30,7 +30,7 @@ function ShopContent() {
     if (note) setSearch(note);
   }, [searchParams]);
 
-  const categories = ['ALL', 'HIM', 'HER', 'ATTAR', 'GIFTING'];
+  const categories = ['ALL', 'HIM', 'HER', 'GIFTING'];
   const sections = ['ALL', 'BESTSELLERS', 'NEW ARRIVALS'];
 
   const filteredProducts = products

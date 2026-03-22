@@ -5,9 +5,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Plus, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export const CartDrawer = () => {
   const { items, isCartOpen, setIsCartOpen, removeFromCart, updateQuantity, totalItems, totalPrice, clearCart } = useCart();
+
+  const router = useRouter();
+
+  const handleCheckout = () => {
+    setIsCartOpen(false);
+    router.push('/checkout');
+  };
 
   return (
     <AnimatePresence>
@@ -89,7 +97,7 @@ export const CartDrawer = () => {
                   <span className="text-xl font-bold text-[#1a1a1a]">₹{totalPrice}</span>
                 </div>
                 <p className="text-[10px] text-black/25 text-center">Shipping and taxes calculated at checkout</p>
-                <button className="w-full bg-black text-white py-4 rounded-xl text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-black/90 transition-all flex items-center justify-center gap-2">
+                <button onClick={handleCheckout} className="w-full bg-black text-white py-4 rounded-xl text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-black/90 transition-all flex items-center justify-center gap-2">
                   Checkout <ArrowRight className="w-4 h-4" />
                 </button>
                 <button onClick={clearCart} className="w-full text-[10px] text-black/30 font-semibold uppercase tracking-wider hover:text-red-500 transition-colors py-1">

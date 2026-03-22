@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { ProductCard } from '@/components/ProductCard';
+import { Testimonials } from '@/components/Testimonials';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Star, Minus, Plus, Info, ShoppingCart, Heart, Truck, RotateCcw, Shield } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
@@ -306,6 +307,11 @@ export default function ProductPage() {
             </div>
           </section>
         )}
+
+        {/* Reviews Section */}
+        <div className="mt-16 md:mt-24 border-t border-black/[0.04] pt-8 -mx-4 md:mx-0">
+          <Testimonials productId={product.id} />
+        </div>
       </div>
 
       <Footer />

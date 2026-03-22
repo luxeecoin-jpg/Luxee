@@ -64,19 +64,20 @@ export const Header = () => {
 
         {/* Right - Icons */}
         <div className="flex items-center gap-3 md:gap-5 flex-1 justify-end">
-          <Link href="/deals" className="hidden md:flex items-center gap-1.5 cursor-pointer hover:text-gold-600 transition-colors">
-             <Zap className="w-3.5 h-3.5" />
-             <span className="text-[10px] font-bold tracking-widest">DEALS</span>
-          </Link>
-          
           {user ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <Link href="/account" className="flex items-center gap-2 hover:text-gold-600 transition-colors">
                 <span className="text-[9px] font-black hidden lg:inline-block tracking-widest">Hi, {user.displayName || 'User'}</span>
                 <div className="w-8 h-8 rounded-full bg-black/[0.04] flex items-center justify-center hover:bg-black/[0.08] transition-colors">
                   <User className="w-4 h-4" />
                 </div>
               </Link>
+              <button 
+                onClick={() => signOut(auth)}
+                className="text-[9px] font-black uppercase tracking-widest text-black/40 hover:text-red-500 transition-colors border-l border-black/10 pl-4"
+              >
+                Logout
+              </button>
             </div>
           ) : (
             <Link href="/login" className="w-8 h-8 rounded-full bg-black/[0.04] flex items-center justify-center hover:bg-black/[0.08] transition-colors">
@@ -99,12 +100,10 @@ export const Header = () => {
       <nav className="hidden md:block border-t border-black/[0.04]">
         <div className="container mx-auto px-6 py-2.5">
           <ul className="flex items-center justify-center gap-8 lg:gap-12 text-[10px] font-semibold text-black/50 tracking-[0.15em]">
-            <li><Link href="/deals" className="text-red-500 hover:text-red-700 transition-colors font-bold">CRAZY DEALS</Link></li>
             <li><Link href="/shop" className="hover:text-black transition-colors">SHOP ALL</Link></li>
             <li><Link href="/shop?section=BESTSELLERS" className="hover:text-black transition-colors">BESTSELLERS</Link></li>
             <li><Link href="/shop?category=HIM" className="hover:text-black transition-colors">FOR HIM</Link></li>
             <li><Link href="/shop?category=HER" className="hover:text-black transition-colors">FOR HER</Link></li>
-            <li><Link href="/shop?category=ATTAR" className="hover:text-black transition-colors">ATTARS</Link></li>
             <li><Link href="/shop?category=GIFTING" className="hover:text-black transition-colors">GIFTING</Link></li>
             <li><Link href="/about" className="hover:text-black transition-colors">ABOUT</Link></li>
             <li><Link href="/contact" className="hover:text-black transition-colors">CONTACT</Link></li>
@@ -128,16 +127,14 @@ export const Header = () => {
          </div>
          <ul className="flex flex-col px-4 gap-1">
             {[
-              { href: "/deals", label: "CRAZY DEALS", highlight: true },
               { href: "/shop", label: "SHOP ALL" },
               { href: "/shop?section=BESTSELLERS", label: "BESTSELLERS" },
               { href: "/shop?category=HIM", label: "FOR HIM" },
               { href: "/shop?category=HER", label: "FOR HER" },
-              { href: "/shop?category=ATTAR", label: "ATTARS" },
               { href: "/shop?category=GIFTING", label: "GIFTING" },
               { href: "/about", label: "ABOUT US" },
               { href: "/contact", label: "CONTACT" },
-            ].map(item => (
+            ].map((item: any) => (
               <li key={item.href}>
                 <Link
                   href={item.href}

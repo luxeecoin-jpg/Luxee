@@ -10,12 +10,11 @@ import { useRouter } from 'next/navigation';
 import { seedDatabase } from '@/lib/seed';
 import Link from 'next/link';
 
-const CATEGORIES = ['HIM', 'HER', 'ATTAR', 'GIFTING'];
-const SECTIONS = ['BESTSELLERS', 'NEW ARRIVALS', 'CRAZY DEALS'];
-const ALL_NOTES = ['ROSE', 'CITRUSY', 'WHITE FLORAL', 'AQUATIC', 'MUSK', 'SPICY', 'WOODY'];
+const CATEGORIES = ['HIM', 'HER', 'GIFTING'];
+const SECTIONS = ['BESTSELLERS', 'NEW ARRIVALS'];
 const SIZES = ['15 ML', '30 ML', '50 ML', '100 ML'];
 
-type AdminTab = 'dashboard' | 'products' | 'hero' | 'deals';
+type AdminTab = 'dashboard' | 'products' | 'hero';
 
 // Compress image and convert to base64 data URL
 const fileToDataUrl = (file: File): Promise<string> => {
@@ -83,6 +82,8 @@ export default function AdminPage() {
   const [productSearch, setProductSearch] = useState('');
   const [productFilter, setProductFilter] = useState('ALL');
   const [showPreview, setShowPreview] = useState(false);
+  const [customSize, setCustomSize] = useState('');
+  const [availableSizes, setAvailableSizes] = useState(SIZES);
 
   const imgInputRef = useRef<HTMLInputElement>(null);
 
@@ -132,15 +133,6 @@ export default function AdminPage() {
     setEditForm({ ...editForm, image: dataUrl });
   };
 
-  const toggleNote = (note: string) => {
-    const current = editForm.notes || [];
-    if (current.includes(note)) {
-      setEditForm({ ...editForm, notes: current.filter(n => n !== note) });
-    } else {
-      setEditForm({ ...editForm, notes: [...current, note] });
-    }
-  };
-
   const toggleSize = (size: string) => {
     const current = editForm.sizes || [];
     if (current.includes(size)) {
@@ -148,6 +140,29 @@ export default function AdminPage() {
     } else {
       setEditForm({ ...editForm, sizes: [...current, size] });
     }
+  };
+
+  const removeAvailableSize = (size: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Remove from available sizes
+    setAvailableSizes(availableSizes.filter(s => s !== size));
+    // Also unselect it if it was selected
+    if ((editForm.sizes || []).includes(size)) {
+      setEditForm({ ...editForm, sizes: (editForm.sizes || []).filter(s => s !== size) });
+    }
+  };
+
+  const handleAddCustomSize = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (!customSize.trim()) return;
+    const value = customSize.trim().toUpperCase();
+    if (!availableSizes.includes(value)) {
+      setAvailableSizes([...availableSizes, value]);
+    }
+    if (!(editForm.sizes || []).includes(value)) {
+      setEditForm({ ...editForm, sizes: [...(editForm.sizes || []), value] });
+    }
+    setCustomSize('');
   };
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -165,7 +180,6 @@ export default function AdminPage() {
       badges: editForm.badges || [],
       tag: editForm.tag || "",
       description: editForm.description || "",
-      notes: editForm.notes || [],
       sizes: editForm.sizes || [],
     });
     setIsAdding(false);
@@ -186,12 +200,10 @@ export default function AdminPage() {
     return matchSearch && matchFilter;
   });
 
-  const dealProducts = products.filter(p => p.section === 'CRAZY DEALS');
   const stats = {
     total: products.length,
     bestsellers: products.filter(p => p.section === 'BESTSELLERS').length,
     newArrivals: products.filter(p => p.section === 'NEW ARRIVALS').length,
-    deals: dealProducts.length,
   };
 
   if (authLoading || productsLoading || heroLoading) {
@@ -211,7 +223,6 @@ export default function AdminPage() {
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'products', label: 'Products', icon: Package },
     { id: 'hero', label: 'Hero Slider', icon: Layout },
-    { id: 'deals', label: 'Deals', icon: Zap },
   ];
 
   // Discount calculation
@@ -256,7 +267,6 @@ export default function AdminPage() {
                 { label: 'Total Products', value: stats.total, color: 'bg-blue-50 text-blue-600' },
                 { label: 'Bestsellers', value: stats.bestsellers, color: 'bg-orange-50 text-orange-600' },
                 { label: 'New Arrivals', value: stats.newArrivals, color: 'bg-green-50 text-green-600' },
-                { label: 'Deals', value: stats.deals, color: 'bg-red-50 text-red-600' },
               ].map((s, i) => (
                 <div key={i} className="bg-white p-5 rounded-xl border border-black/[0.04]">
                   <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${s.color}`}>{s.label}</span>
@@ -282,7 +292,7 @@ export default function AdminPage() {
           <div>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
               <h1 className="text-2xl font-serif text-[#1a1a1a]">Products</h1>
-              <button onClick={() => { setIsAdding(true); setEditForm({ sizes: ['50 ML'], notes: [] }); setShowPreview(false); }} className="bg-black text-white px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
+              <button onClick={() => { setIsAdding(true); setEditForm({ sizes: ['50 ML'] }); setShowPreview(false); }} className="bg-black text-white px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-2">
                 <Plus className="w-4 h-4" /> Add Product
               </button>
             </div>
@@ -312,7 +322,7 @@ export default function AdminPage() {
                           <p className="text-sm font-semibold text-[#1a1a1a]">{p.name}</p>
                           <div className="flex gap-1 mt-1"><span className="text-[8px] font-semibold bg-black/5 px-1.5 py-0.5 rounded">{p.category}</span>{p.tag && <span className="text-[8px] font-semibold bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded">{p.tag}</span>}</div>
                         </td>
-                        <td className="p-4"><span className={`text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider ${p.section === 'BESTSELLERS' ? 'bg-orange-50 text-orange-600' : p.section === 'NEW ARRIVALS' ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'}`}>{p.section}</span></td>
+                        <td className="p-4"><span className={`text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider ${p.section === 'BESTSELLERS' ? 'bg-orange-50 text-orange-600' : 'bg-blue-50 text-blue-600'}`}>{p.section}</span></td>
                         <td className="p-4 text-right"><p className="text-sm font-bold">₹{p.price}</p>{p.oldPrice > p.price && <p className="text-[10px] text-black/20 line-through">₹{p.oldPrice}</p>}</td>
                         <td className="p-4">
                           <div className="flex justify-center gap-2">
@@ -346,7 +356,7 @@ export default function AdminPage() {
                         <img src={s.image} className="w-10 h-10 rounded-lg object-cover" />
                         <span className="text-[11px] font-semibold">Slide {i + 1}</span>
                       </div>
-                      <button onClick={(e) => { e.stopPropagation(); removeSlide(i); }} className={`p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity ${activeSlideIdx === i ? 'hover:bg-white/20' : 'hover:bg-red-50 text-red-500'}`}><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={(e) => { e.stopPropagation(); removeSlide(i); }} className={`p-1.5 rounded transition-all ${activeSlideIdx === i ? 'text-white/70 hover:text-white hover:bg-white/20' : 'text-red-400 hover:text-red-500 hover:bg-red-50'}`}><Trash2 className="w-4 h-4 md:w-3.5 md:h-3.5" /></button>
                     </div>
                   ))}
                 </div>
@@ -394,25 +404,6 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Deals */}
-        {activeTab === 'deals' && (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <div><h1 className="text-2xl font-serif text-[#1a1a1a]">Crazy Deals</h1><p className="text-[11px] text-black/30 mt-1">Products with section &quot;CRAZY DEALS&quot; appear on the deals page</p></div>
-              <button onClick={() => { setIsAdding(true); setEditForm({ section: 'CRAZY DEALS' as any, sizes: ['50 ML'], notes: [] }); }} className="bg-red-500 text-white px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-2"><Plus className="w-4 h-4" /> Add Deal</button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {dealProducts.map(p => (
-                <div key={p.id} className="bg-white p-5 rounded-xl border border-black/[0.04] flex items-center gap-4">
-                  <img src={p.image} className="w-16 h-16 object-contain bg-[#fafafa] rounded-lg p-2" />
-                  <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-[#1a1a1a] truncate">{p.name}</p><p className="text-sm text-red-500 font-bold">₹{p.price} <span className="text-black/20 line-through text-xs">₹{p.oldPrice}</span></p></div>
-                  <button onClick={() => deleteProduct(p.id)} className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 flex-shrink-0"><Trash2 className="w-4 h-4" /></button>
-                </div>
-              ))}
-              {dealProducts.length === 0 && <div className="col-span-full py-12 text-center text-sm text-black/20">No deal products yet.</div>}
-            </div>
-          </div>
-        )}
 
         {/* Add / Edit Product Modal */}
         {isAdding && (
@@ -490,26 +481,48 @@ export default function AdminPage() {
                   {/* Sizes */}
                   <div>
                     <label className="text-[10px] font-semibold text-black/40 uppercase tracking-wider block mb-2">Available Sizes</label>
-                    <div className="flex flex-wrap gap-2">
-                      {SIZES.map(size => (
-                        <button type="button" key={size} onClick={() => toggleSize(size)} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${(editForm.sizes || []).includes(size) ? 'bg-black text-white border-black' : 'bg-white text-black/40 border-black/10 hover:border-black/20'}`}>
-                          {size}
-                        </button>
-                      ))}
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {availableSizes.map(size => {
+                        const isSelected = (editForm.sizes || []).includes(size);
+                        const isCustom = !SIZES.includes(size);
+                        return (
+                          <div key={size} className={`flex items-center rounded-lg border transition-all overflow-hidden ${isSelected ? 'bg-black text-white border-black' : 'bg-white text-black/40 border-black/10 hover:border-black/20'}`}>
+                            <button type="button" onClick={() => toggleSize(size)} className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider flex-1 text-left">
+                              {size}
+                            </button>
+                            {isCustom && (
+                              <button type="button" onClick={(e) => removeAvailableSize(size, e)} className={`p-2 transition-colors ${isSelected ? 'hover:bg-white/20 text-white/70 hover:text-white' : 'hover:bg-black/5 text-black/40 hover:text-red-500'}`}>
+                                <X className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        placeholder="e.g. 200 ML or 5 GM" 
+                        value={customSize} 
+                        onChange={e => setCustomSize(e.target.value)} 
+                        className="flex-1 bg-[#fafafa] border border-black/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none" 
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddCustomSize();
+                          }
+                        }}
+                      />
+                      <button 
+                        type="button" 
+                        onClick={handleAddCustomSize}
+                        className="bg-black/5 hover:bg-black/10 text-black px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors whitespace-nowrap"
+                      >
+                        Add Custom Size
+                      </button>
                     </div>
                   </div>
 
-                  {/* Notes (Dropdown Multi-select) */}
-                  <div>
-                    <label className="text-[10px] font-semibold text-black/40 uppercase tracking-wider block mb-2">Scent Notes</label>
-                    <div className="flex flex-wrap gap-2">
-                      {ALL_NOTES.map(note => (
-                        <button type="button" key={note} onClick={() => toggleNote(note)} className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${(editForm.notes || []).includes(note) ? 'bg-gold-100 text-gold-700 border-gold-200' : 'bg-white text-black/30 border-black/10 hover:border-black/20'}`}>
-                          {note}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -547,9 +560,6 @@ export default function AdminPage() {
                       </div>
                       {(editForm.sizes || []).length > 0 && (
                         <div className="flex gap-1.5 mt-3">{(editForm.sizes || []).map(s => <span key={s} className="text-[8px] font-bold bg-black/5 px-2 py-1 rounded">{s}</span>)}</div>
-                      )}
-                      {(editForm.notes || []).length > 0 && (
-                        <div className="flex gap-1.5 mt-2 flex-wrap">{(editForm.notes || []).map(n => <span key={n} className="text-[8px] font-bold text-gold-600 bg-gold-50 px-2 py-0.5 rounded">{n}</span>)}</div>
                       )}
                     </div>
                   </div>

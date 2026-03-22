@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Quote, Send } from 'lucide-react';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, onSnapshot, query, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, orderBy, Timestamp, where } from 'firebase/firestore';
 
 interface Review {
   id: string;
@@ -12,21 +12,37 @@ interface Review {
   text: string;
   rating: number;
   createdAt: any;
+  productId?: string;
 }
 
-export const Testimonials = () => {
+export const Testimonials = ({ productId }: { productId?: string }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [current, setCurrent] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', text: '', rating: 5 });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [hasOrdered, setHasOrdered] = useState(false);
+
+  useEffect(() => {
+    if (productId && typeof window !== 'undefined') {
+      const existing = JSON.parse(localStorage.getItem('completedOrders') || '[]');
+      if (existing.includes(productId)) {
+        setHasOrdered(true);
+      }
+    } else if (!productId) {
+      setHasOrdered(true); // Allow general reviews if not on product page
+    }
+  }, [productId]);
 
   // Load reviews from Firestore
   useEffect(() => {
     const q = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
-      const r = snap.docs.map(d => ({ id: d.id, ...d.data() })) as Review[];
+      let r = snap.docs.map(d => ({ id: d.id, ...d.data() })) as Review[];
+      if (productId) {
+        r = r.filter(rev => rev.productId === productId);
+      }
       setReviews(r);
     });
     return () => unsub();
@@ -51,6 +67,7 @@ export const Testimonials = () => {
         text: formData.text.trim(),
         rating: formData.rating,
         createdAt: Timestamp.now(),
+        productId: productId || 'general'
       });
       setSubmitted(true);
       setFormData({ name: '', text: '', rating: 5 });
@@ -127,9 +144,15 @@ export const Testimonials = () => {
         <div className="max-w-lg mx-auto mt-10">
           {!showForm ? (
             <div className="text-center">
-              <button onClick={() => setShowForm(true)} className="bg-black text-white px-8 py-4 rounded-xl text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-black/90 transition-all">
-                Write a Review
-              </button>
+              {productId && !hasOrdered ? (
+                <p className="text-sm font-semibold text-red-500 bg-red-50 py-3 px-6 rounded-xl border border-red-100 inline-block">
+                  Only verified buyers can review this product. Checkout from the cart to unlock reviews!
+                </p>
+              ) : (
+                <button onClick={() => setShowForm(true)} className="bg-black text-white px-8 py-4 rounded-xl text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-black/90 transition-all">
+                  Write a Review
+                </button>
+              )}
             </div>
           ) : submitted ? (
             <div className="bg-white rounded-2xl border border-black/[0.04] p-8 text-center">
