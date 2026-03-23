@@ -66,18 +66,15 @@ export const Header = () => {
         <div className="flex items-center gap-3 md:gap-5 flex-1 justify-end">
           {user ? (
             <div className="flex items-center gap-4">
+              <Link href="/orders" className="flex items-center gap-2 hover:text-black transition-colors border-r border-black/10 pr-4">
+                <span className="text-[9px] font-black hidden lg:inline-block tracking-widest">My Orders</span>
+              </Link>
               <Link href="/account" className="flex items-center gap-2 hover:text-gold-600 transition-colors">
                 <span className="text-[9px] font-black hidden lg:inline-block tracking-widest">Hi, {user.displayName || 'User'}</span>
                 <div className="w-8 h-8 rounded-full bg-black/[0.04] flex items-center justify-center hover:bg-black/[0.08] transition-colors">
                   <User className="w-4 h-4" />
                 </div>
               </Link>
-              <button 
-                onClick={() => signOut(auth)}
-                className="text-[9px] font-black uppercase tracking-widest text-black/40 hover:text-red-500 transition-colors border-l border-black/10 pl-4"
-              >
-                Logout
-              </button>
             </div>
           ) : (
             <Link href="/login" className="w-8 h-8 rounded-full bg-black/[0.04] flex items-center justify-center hover:bg-black/[0.08] transition-colors">
@@ -128,6 +125,7 @@ export const Header = () => {
          <ul className="flex flex-col px-4 gap-1">
             {[
               { href: "/shop", label: "SHOP ALL" },
+              { href: "/orders", label: "MY ORDERS", highlight: user ? true : false },
               { href: "/shop?section=BESTSELLERS", label: "BESTSELLERS" },
               { href: "/shop?category=HIM", label: "FOR HIM" },
               { href: "/shop?category=HER", label: "FOR HER" },

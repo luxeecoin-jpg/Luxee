@@ -22,6 +22,8 @@ export const metadata: Metadata = {
   keywords: ["perfume", "fragrance", "luxury", "attar", "Luxee", "premium perfumes"],
 };
 
+import { Suspense } from 'react';
+
 export default function RootLayout({
   children,
 }: {
@@ -31,7 +33,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${playfair.variable} ${inter.variable} font-sans antialiased`}>
         <CartProvider>
-          {children}
+          <Suspense fallback={null}>
+            {children}
+          </Suspense>
           <CartDrawer />
         </CartProvider>
       </body>

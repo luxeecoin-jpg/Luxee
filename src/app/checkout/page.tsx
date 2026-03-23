@@ -217,13 +217,19 @@ export default function CheckoutPage() {
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest text-black/40 ml-4">Phone Number</label>
                       <div className="relative">
-                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20" />
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                          <Phone className="w-4 h-4 text-black/20" />
+                          <span className="text-sm font-bold text-black/40 border-r border-black/5 pr-2">+91</span>
+                        </div>
                         <input 
                           type="tel" 
                           value={address.phone}
-                          onChange={e => setAddress({...address, phone: e.target.value})}
-                          className="w-full bg-[#fcfcfc] border border-black/5 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:outline-none focus:border-black/20 transition-all"
-                          placeholder="+91"
+                          onChange={e => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            setAddress({...address, phone: val});
+                          }}
+                          className="w-full bg-[#fcfcfc] border border-black/5 rounded-2xl py-4 pl-24 pr-4 text-sm font-bold focus:outline-none focus:border-black/20 transition-all"
+                          placeholder="99999 99999"
                         />
                       </div>
                     </div>

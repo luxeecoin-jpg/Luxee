@@ -75,16 +75,35 @@ function LoginContent() {
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone) return;
+    if (phone.length !== 10) {
+      setError("Please enter a valid 10-digit number");
+      return;
+    }
     setLoading(true);
     setError('');
     try {
       const appVerifier = window.recaptchaVerifier;
-      const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
+      if (!appVerifier) {
+        throw new Error("reCAPTCHA not initialized. Please refresh.");
+      }
+      const formattedPhone = `+91${phone}`;
       const result = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
       setConfirmationResult(result);
       setShowOtp(true);
     } catch (err: any) {
-      setError(err.message || "Failed to send OTP");
+      console.error("OTP Send Failure Details:", err);
+      // More user-friendly error messages based on Firebase codes
+      if (err.code === 'auth/invalid-phone-number') {
+        setError("Invalid phone number format. Please ensure you entered 10 digits correctly.");
+      } else if (err.code === 'auth/captcha-check-failed') {
+        setError("reCAPTCHA validation failed. Please try again.");
+      } else if (err.code === 'auth/too-many-requests') {
+        setError("Too many requests. Please try again later.");
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setError("This domain is not authorized for phone authentication in the Firebase Console.");
+      } else {
+        setError(err.message || "Failed to send OTP. Check console for details.");
+      }
     } finally {
       setLoading(false);
     }
@@ -186,13 +205,19 @@ function LoginContent() {
                     <div className="space-y-1">
                       <label className="text-[10px] font-black uppercase tracking-widest text-black/40 ml-4">Phone Number</label>
                       <div className="relative">
-                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/20" />
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                          <Phone className="w-4 h-4 text-black/20" />
+                          <span className="text-sm font-bold text-black/40 border-r border-black/5 pr-2">+91</span>
+                        </div>
                         <input 
                           type="tel" 
                           value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          className="w-full bg-white border border-black/10 rounded-2xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-black/10 transition-all font-bold"
-                          placeholder="+91 99999 99999"
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            setPhone(val);
+                          }}
+                          className="w-full bg-white border border-black/10 rounded-2xl py-4 pl-24 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-black/10 transition-all font-bold"
+                          placeholder="99999 99999"
                           required
                         />
                       </div>
