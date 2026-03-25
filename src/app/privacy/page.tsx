@@ -8,7 +8,7 @@ export default function PrivacyPage() {
     { title: "2. How We Use Your Information", content: "We use information to process orders, manage accounts, send order confirmations and shipping updates, provide customer support, send promotional communications (with consent), improve our website, and comply with legal obligations." },
     { title: "3. Information Sharing", content: "We do not sell or transfer your information to outside parties, except trusted third parties who assist in operating our store, processing payments, and delivering orders." },
     { title: "4. Data Security", content: "We implement security measures to protect your personal information. All payment transactions are processed through secure, encrypted gateways with SSL encryption." },
-    { title: "5. Your Rights", content: "You have the right to access, correct, or delete your personal information at any time. Contact us at hello@luxee.in." },
+    { title: "5. Your Rights", content: "You have the right to access, correct, or delete your personal information at any time. Contact us at luxee.co.in@gmail.com." },
   ];
 
   return (

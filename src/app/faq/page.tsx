@@ -29,7 +29,7 @@ const FAQ_SECTIONS = [
     title: "Returns & Refunds",
     faqs: [
       { q: "What is your return policy?", a: "We accept returns within 7 days of delivery. Products must be unused and in their original packaging. Refunds are processed within 5-7 business days." },
-      { q: "How do I initiate a return?", a: "Simply email us at hello@luxee.in with your order number and reason for return. Our team will guide you through the process." },
+      { q: "How do I initiate a return?", a: "Simply email us at luxee.co.in@gmail.com with your order number and reason for return. Our team will guide you through the process." },
       { q: "Can I exchange a product?", a: "Yes, exchanges are available for a different fragrance of the same value. Contact our support team to arrange an exchange." },
     ]
   },

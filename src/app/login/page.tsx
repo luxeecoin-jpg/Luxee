@@ -125,13 +125,26 @@ function LoginContent() {
   };
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-white flex flex-col md:flex-row">
       <Header />
-      <div className="container mx-auto px-4 flex items-center justify-center min-h-[calc(100vh-80px)]">
+      
+      {/* Left Side - Image/Branding (Hidden on mobile) */}
+      <div className="hidden md:flex md:w-1/2 bg-[#111] text-white flex-col justify-center items-center relative overflow-hidden h-screen">
+        <div className="absolute inset-0 bg-black/40 z-10" />
+        {/* Placeholder for a luxury aesthetic background.  Unsplash fragrance/luxury image */}
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1594913366159-184204dea33c?q=80&w=2670&auto=format&fit=crop')] bg-cover bg-center" />
+        <div className="relative z-20 text-center p-12">
+          <h2 className="text-5xl lg:text-7xl font-serif tracking-[0.2em] mb-6">LUXEE</h2>
+          <p className="text-sm font-light tracking-[0.3em] text-white/80 uppercase">Experience True Elegance</p>
+        </div>
+      </div>
+
+      {/* Right Side - Form */}
+      <div className="w-full md:w-1/2 flex items-center justify-center p-6 lg:p-16 min-h-screen pt-24 md:pt-0 bg-[#fcfcfc]">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full p-8 border border-black/5 rounded-[2rem] bg-[#fcfcfc] shadow-2xl shadow-black/[0.02]"
+          className="max-w-md w-full"
         >
           <div className="text-center mb-10">
             <h1 className="text-4xl font-black text-[#2d3436] uppercase tracking-tighter mb-2">Welcome Back</h1>
@@ -140,12 +153,14 @@ function LoginContent() {
 
           <div className="flex bg-black/[0.03] p-1 rounded-2xl mb-8">
             <button 
+              type="button"
               onClick={() => { setLoginMethod('email'); setError(''); }}
               className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${loginMethod === 'email' ? 'bg-white shadow-sm text-black' : 'text-black/30'}`}
             >
               Email
             </button>
             <button 
+              type="button"
               onClick={() => { setLoginMethod('phone'); setError(''); }}
               className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${loginMethod === 'phone' ? 'bg-white shadow-sm text-black' : 'text-black/30'}`}
             >
@@ -170,6 +185,7 @@ function LoginContent() {
                       <input 
                         type="email" 
                         value={email}
+                        autoComplete="username"
                         onChange={(e) => setEmail(e.target.value)}
                         className="w-full bg-white border border-black/10 rounded-2xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-black/10 transition-all font-bold"
                         placeholder="name@example.com"
@@ -185,6 +201,7 @@ function LoginContent() {
                       <input 
                         type="password" 
                         value={password}
+                        autoComplete="current-password"
                         onChange={(e) => setPassword(e.target.value)}
                         className="w-full bg-white border border-black/10 rounded-2xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-black/10 transition-all font-bold"
                         placeholder="••••••••"

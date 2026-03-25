@@ -56,6 +56,8 @@ export const Footer = () => {
                 { label: "FAQ", href: "/faq" },
                 { label: "Privacy Policy", href: "/privacy" },
                 { label: "Terms of Service", href: "/terms" },
+                { label: "Refund Policy", href: "/refund-policy" },
+                { label: "Shipping Policy", href: "/shipping-policy" },
               ].map(link => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-sm text-white/40 hover:text-white transition-colors">
@@ -72,7 +74,7 @@ export const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-white/30">
                 <Mail className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm">hello@luxee.in</span>
+                <span className="text-sm">luxee.co.in@gmail.com</span>
               </div>
             </div>
           </div>
