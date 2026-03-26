@@ -1,4 +1,4 @@
-"use client";
+// Server Component — no hooks, no state, no JS shipped to client
 
 import React from 'react';
 import Link from 'next/link';
@@ -56,8 +56,6 @@ export const Footer = () => {
                 { label: "FAQ", href: "/faq" },
                 { label: "Privacy Policy", href: "/privacy" },
                 { label: "Terms of Service", href: "/terms" },
-                { label: "Refund Policy", href: "/refund-policy" },
-                { label: "Shipping Policy", href: "/shipping-policy" },
               ].map(link => (
                 <li key={link.href}>
                   <Link href={link.href} className="text-sm text-white/40 hover:text-white transition-colors">

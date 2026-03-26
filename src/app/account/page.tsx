@@ -1,61 +1,26 @@
-"use client";
-
-import React, { useState, useEffect } from 'react';
-import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import React from 'react';
+import { currentUser } from '@clerk/nextjs/server';
+import prisma from '@/lib/prisma';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
-import { motion, AnimatePresence } from 'framer-motion';
-import { User as UserIcon, Package, Clock, ShieldCheck, LogOut, ChevronRight, AlertCircle, ShoppingBag, ExternalLink } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import * as motion from 'framer-motion/client';
+import { User as UserIcon, Package, Clock, ShieldCheck, ChevronRight, ShoppingBag, LogOut } from 'lucide-react';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { SignOutButton } from '@clerk/nextjs';
 
-interface Order {
-  id: string;
-  createdAt: any;
-  status: string;
-  totalPrice: number;
-  items: any[];
-}
+export default async function AccountPage() {
+  const user = await currentUser();
 
-export default function AccountPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [indexError, setIndexError] = useState(false);
-  const router = useRouter();
+  if (!user) {
+    redirect('/login?redirect=/account');
+  }
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        try {
-          const q = query(
-            collection(db, 'orders'),
-            where('userId', '==', currentUser.uid),
-            orderBy('createdAt', 'desc')
-          );
-          const querySnapshot = await getDocs(q);
-          const ordersData: Order[] = [];
-          querySnapshot.forEach((doc) => {
-            ordersData.push({ id: doc.id, ...doc.data() } as Order);
-          });
-          setOrders(ordersData);
-          setIndexError(false);
-        } catch (error: any) {
-          console.error("Error fetching orders:", error);
-          if (error.message && error.message.includes("requires an index")) {
-            setIndexError(true);
-          }
-        }
-      } else {
-        router.push('/login?redirect=/account');
-      }
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [router]);
+  // Fetch orders from PostgreSQL via Prisma
+  const orders = await prisma.order.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'desc' }
+  });
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -67,8 +32,6 @@ export default function AccountPage() {
       default: return 'text-black/40 bg-black/5';
     }
   };
-
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-black uppercase text-[10px] tracking-widest">Loading Account...</div>;
 
   return (
     <main className="min-h-screen bg-[#fafafa]">
@@ -85,81 +48,62 @@ export default function AccountPage() {
               className="bg-white p-8 rounded-[2.5rem] border border-black/5 shadow-2xl shadow-black/[0.02] text-center sticky top-24"
             >
               <div className="w-24 h-24 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-black uppercase">
-                {user?.displayName?.charAt(0) || user?.email?.charAt(0)}
+                {user.firstName?.charAt(0) || user.emailAddresses[0].emailAddress.charAt(0)}
               </div>
-              <h1 className="text-xl font-black text-[#2d3436] uppercase tracking-tight mb-1">{user?.displayName || 'Premium User'}</h1>
-              <p className="text-[10px] font-bold text-black/30 uppercase tracking-widest">{user?.email}</p>
+              <h1 className="text-xl font-black text-[#2d3436] uppercase tracking-tight mb-1">{user.firstName ? `${user.firstName} ${user.lastName || ''}` : 'Premium User'}</h1>
+              <p className="text-[10px] font-bold text-black/30 uppercase tracking-widest">{user.emailAddresses[0].emailAddress}</p>
               
               <div className="mt-8 pt-8 border-t border-black/5 flex flex-col gap-2">
-                {user?.email === 'admin@gmail.com' && (
-                  <button 
-                    onClick={() => router.push('/admin')}
+                {(user.publicMetadata.role === 'admin' || user.emailAddresses[0].emailAddress === 'vikasparmar605@gmail.com') && (
+                  <Link 
+                    href="/admin"
                     className="w-full bg-red-500 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
                   >
                     <ShieldCheck className="w-4 h-4" /> Admin Panel
-                  </button>
+                  </Link>
                 )}
-                <button 
-                  onClick={() => auth.signOut()}
-                  className="w-full bg-black/5 text-black/60 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black/10 transition-all"
-                >
-                  <LogOut className="w-4 h-4" /> Logout
-                </button>
+                <SignOutButton>
+                  <button className="w-full bg-black/5 text-black/60 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-red-50 hover:text-red-500 transition-all cursor-pointer">
+                    <LogOut className="w-4 h-4" /> Sign Out
+                  </button>
+                </SignOutButton>
               </div>
             </motion.div>
           </div>
 
           {/* Right Content */}
           <div className="lg:col-span-2 space-y-8">
-            {indexError && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-amber-50 border border-amber-200 p-6 rounded-[2rem] flex items-start gap-4"
-              >
-                <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0">
-                  <AlertCircle className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-amber-900 font-black uppercase tracking-tighter text-sm mb-1">Action Required</h3>
-                  <p className="text-amber-800/60 text-[10px] font-bold uppercase tracking-widest leading-relaxed">
-                    Firestore requires a composite index to display your orders. Please check your browser console and click the link to create it.
-                  </p>
-                </div>
-              </motion.div>
-            )}
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white p-6 rounded-3xl border border-black/5 flex items-center gap-4">
-                <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center"><Package className="w-5 h-5" /></div>
-                <div>
-                  <p className="text-[20px] font-black">{orders.length}</p>
-                  <p className="text-[9px] font-black uppercase opacity-30 mt-1">Total Orders</p>
-                </div>
-              </div>
-              <div className="bg-white p-6 rounded-3xl border border-black/5 flex items-center gap-4">
-                <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center"><ShoppingBag className="w-5 h-5" /></div>
-                <div>
-                  <p className="text-[20px] font-black">{orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').length}</p>
-                  <p className="text-[9px] font-black uppercase opacity-30 mt-1">Active</p>
-                </div>
-              </div>
-            </div>
-
-            <section>
-              <div className="flex items-center justify-between mb-8 px-2">
-                <h2 className="text-sm font-black uppercase tracking-[0.2em] opacity-40">Order History</h2>
-                <Link href="/orders" className="text-[9px] font-black border-b border-black uppercase tracking-widest hover:opacity-60 transition-opacity">View All</Link>
-              </div>
-
-              <div className="space-y-4">
-                {orders.length === 0 ? (
-                  <div className="bg-white/40 p-16 rounded-[2.5rem] border border-dashed border-black/10 text-center">
-                    <Package className="w-12 h-12 text-black/5 mx-auto mb-4" />
-                    <p className="text-[10px] font-black uppercase opacity-30 tracking-[0.2em]">No order history found</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-6 rounded-3xl border border-black/5 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center"><Package className="w-5 h-5" /></div>
+                  <div>
+                    <p className="text-[20px] font-black">{orders.length}</p>
+                    <p className="text-[9px] font-black uppercase opacity-30 mt-1">Total Orders</p>
                   </div>
-                ) : (
-                  orders.slice(0, 5).map((order) => (
+                </div>
+                <div className="bg-white p-6 rounded-3xl border border-black/5 flex items-center gap-4">
+                  <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center"><ShoppingBag className="w-5 h-5" /></div>
+                  <div>
+                    <p className="text-[20px] font-black">{orders.filter((o: any) => o.status !== 'delivered' && o.status !== 'cancelled').length}</p>
+                    <p className="text-[9px] font-black uppercase opacity-30 mt-1">Active</p>
+                  </div>
+                </div>
+              </div>
+
+              <section>
+                <div className="flex items-center justify-between mb-8 px-2">
+                  <h2 className="text-sm font-black uppercase tracking-[0.2em] opacity-40">Order History</h2>
+                  <Link href="/orders" className="text-[9px] font-black border-b border-black uppercase tracking-widest hover:opacity-60 transition-opacity">View All</Link>
+                </div>
+
+                <div className="space-y-4">
+                  {orders.length === 0 ? (
+                    <div className="bg-white/40 p-16 rounded-[2.5rem] border border-dashed border-black/10 text-center">
+                      <Package className="w-12 h-12 text-black/5 mx-auto mb-4" />
+                      <p className="text-[10px] font-black uppercase opacity-30 tracking-[0.2em]">No order history found</p>
+                    </div>
+                  ) : (
+                    orders.slice(0, 5).map((order: any) => (
                     <motion.div
                       key={order.id}
                       initial={{ opacity: 0, y: 10 }}
@@ -181,7 +125,7 @@ export default function AccountPage() {
                               </span>
                             </div>
                             <p className="text-[9px] font-bold opacity-30 uppercase tracking-widest">
-                              {order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-IN') : 'Just now'} · ₹{order.totalPrice}
+                               {order.createdAt.toLocaleDateString('en-IN')} · ₹{order.totalPrice}
                             </p>
                           </div>
                         </div>

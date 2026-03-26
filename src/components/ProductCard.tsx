@@ -4,7 +4,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Heart, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
-import { Product } from '@/hooks/useProducts';
+import Image from 'next/image';
+import type { Product } from '@/lib/data';
 import { useCart } from '@/hooks/useCart';
 
 interface ProductCardProps {
@@ -14,8 +15,8 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
   const { addToCart } = useCart();
-  const discountPercent = product.oldPrice > 0
-    ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
+  const discountPercent = (product.oldPrice ?? 0) > 0
+    ? Math.round((((product.oldPrice ?? 0) - product.price) / (product.oldPrice ?? 1)) * 100)
     : 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -25,12 +26,14 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
       id: product.id,
       name: product.name,
       price: product.price,
-      oldPrice: product.oldPrice,
+      oldPrice: product.oldPrice ?? 0,
       image: product.image,
       category: product.category,
       size: '50 ML',
     });
   };
+
+  const isDataUrl = product.image?.startsWith('data:');
 
   return (
     <motion.div
@@ -66,11 +69,21 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
 
           {/* Image */}
           <div className="relative aspect-[4/5] max-h-[300px] md:max-h-[380px] overflow-hidden rounded-xl mb-3 bg-[#fafafa]">
-            <img 
-              src={product.image} 
-              alt={product.name} 
-              className="w-full h-full object-contain mix-blend-multiply p-3 group-hover:scale-110 transition-transform duration-700"
-            />
+            {isDataUrl ? (
+              <img 
+                src={product.image} 
+                alt={product.name} 
+                className="w-full h-full object-contain mix-blend-multiply p-3 group-hover:scale-110 transition-transform duration-700"
+              />
+            ) : (
+              <Image
+                src={product.image}
+                alt={product.name}
+                fill
+                className="object-contain mix-blend-multiply p-3 group-hover:scale-110 transition-transform duration-700"
+                sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              />
+            )}
           </div>
 
           {/* Info */}
@@ -82,7 +95,7 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
             <div className="flex items-center justify-between">
               <div className="flex items-baseline gap-2">
                 <span className="text-sm font-bold text-[#1a1a1a]">₹{product.price}</span>
-                {product.oldPrice > product.price && (
+                {(product.oldPrice ?? 0) > product.price && (
                   <span className="text-[11px] text-black/25 line-through font-medium">₹{product.oldPrice}</span>
                 )}
               </div>

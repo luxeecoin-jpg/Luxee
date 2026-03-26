@@ -1,15 +1,10 @@
-"use client";
-
-import React, { useState, useEffect } from 'react';
-import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { currentUser } from '@clerk/nextjs/server';
+import prisma from '@/lib/prisma';
+import * as motion from 'framer-motion/client';
 import { Header } from '@/components/Header';
 import { 
   Package, 
-  ChevronLeft, 
-  Loader2, 
   Calendar, 
   CreditCard, 
   MapPin, 
@@ -19,26 +14,25 @@ import {
   ShoppingBag,
   ArrowLeft
 } from 'lucide-react';
-import { useRouter, useParams } from 'next/navigation';
+import { Footer } from '@/components/Footer';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
-interface Order {
+interface OrderItem {
   id: string;
-  createdAt: any;
-  status: string;
-  totalPrice: number;
-  items: any[];
-  paymentId: string;
-  shippingAddress: {
-    street: string;
-    apartment: string;
-    city: string;
-    state: string;
-    pincode: string;
-  };
-  customerName: string;
-  customerPhone: string;
-  customerEmail: string;
+  name: string;
+  price: number;
+  quantity: number;
+  size: string;
+  image: string;
+}
+
+interface ShippingAddress {
+  street: string;
+  apartment: string;
+  city: string;
+  state: string;
+  pincode: string;
 }
 
 const statusSteps = [
@@ -48,47 +42,32 @@ const statusSteps = [
   { id: 'delivered', label: 'Delivered', icon: CheckCircle2 },
 ];
 
-export default function OrderDetailsPage() {
-  const { id } = useParams();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const router = useRouter();
+export default async function OrderDetailsPage({ params }: { params: { id: string } }) {
+  const { id } = await params;
+  const user = await currentUser();
 
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      if (u) {
-        try {
-          const orderDoc = await getDoc(doc(db, 'orders', id as string));
-          if (orderDoc.exists() && orderDoc.data().userId === u.uid) {
-            setOrder({ id: orderDoc.id, ...orderDoc.data() } as Order);
-          } else {
-            console.error("Order not found or unauthorized");
-            router.push('/orders');
-          }
-        } catch (error) {
-          console.error("Error fetching order:", error);
-        }
-      } else {
-        router.push('/login?redirect=/orders/' + id);
-      }
-      setLoading(false);
-    });
-    return () => unsub();
-  }, [id, router]);
-
-  const currentStatusIndex = statusSteps.findIndex(s => s.id === order?.status?.toLowerCase());
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-black/20" />
-      </div>
-    );
+  if (!user) {
+    redirect('/login?redirect=/orders/' + id);
   }
 
-  if (!order) return null;
+  const order = await prisma.order.findUnique({
+    where: { id },
+  });
+
+  if (!order || order.userId !== user.id) {
+    redirect('/orders');
+  }
+
+  const items = order.items as unknown as OrderItem[];
+  const shippingAddress = order.shippingAddress as unknown as ShippingAddress || {
+    street: 'Not specified',
+    apartment: '',
+    city: '',
+    state: '',
+    pincode: ''
+  };
+
+  const currentStatusIndex = statusSteps.findIndex(s => s.id === order.status.toLowerCase());
 
   return (
     <main className="min-h-screen bg-[#fafafa]">
@@ -123,7 +102,7 @@ export default function OrderDetailsPage() {
                 <div className="absolute top-1/2 left-0 w-full h-[1px] bg-black/5 -translate-y-[20px]" />
                 <div 
                   className="absolute top-1/2 left-0 h-[1.5px] bg-black -translate-y-[20px] transition-all duration-1000" 
-                  style={{ width: `${(currentStatusIndex / (statusSteps.length - 1)) * 100}%` }}
+                  style={{ width: `${(Math.max(0, currentStatusIndex) / (statusSteps.length - 1)) * 100}%` }}
                 />
                 
                 <div className="relative flex justify-between">
@@ -157,7 +136,7 @@ export default function OrderDetailsPage() {
             <div className="bg-white border border-black/5 rounded-[2.5rem] p-10 shadow-sm">
               <h2 className="text-xl font-black uppercase tracking-tighter mb-8">Items Ordered</h2>
               <div className="space-y-4">
-                {order.items.map((item, idx) => (
+                {items.map((item, idx) => (
                   <div 
                     key={`${item.id}-${idx}`} 
                     className="flex items-center gap-6 p-6 bg-[#fcfcfc] rounded-3xl border border-black/[0.03] hover:border-black/10 transition-colors"
@@ -195,9 +174,9 @@ export default function OrderDetailsPage() {
                   <div>
                     <h4 className="text-[10px] font-black uppercase tracking-widest mb-2">Shipping Address</h4>
                     <p className="text-[11px] font-bold text-black leading-relaxed">
-                      {order.customerName}<br />
-                      {order.shippingAddress.apartment}, {order.shippingAddress.street}<br />
-                      {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.pincode}
+                      {user.firstName} {user.lastName}<br />
+                      {shippingAddress.apartment}, {shippingAddress.street}<br />
+                      {shippingAddress.city}, {shippingAddress.state} {shippingAddress.pincode}
                     </p>
                   </div>
                 </div>
@@ -209,7 +188,7 @@ export default function OrderDetailsPage() {
                   <div>
                     <h4 className="text-[10px] font-black uppercase tracking-widest mb-2">Order Date</h4>
                     <p className="text-[11px] font-bold text-black">
-                      {order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Processing...'}
+                      {order.createdAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
                   </div>
                 </div>
@@ -219,9 +198,9 @@ export default function OrderDetailsPage() {
                     <CreditCard className="w-4 h-4 text-black/30" />
                   </div>
                   <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-widest mb-2">Payment Method</h4>
+                    <h4 className="text-[10px] font-black uppercase tracking-widest mb-2">Payment Info</h4>
                     <p className="text-[11px] font-bold text-black uppercase tracking-widest">
-                      {order.paymentId === 'COD' ? 'Cash On Delivery' : 'Online Payment'}
+                       {order.totalPrice > 0 ? 'Verified' : 'Pending'}
                     </p>
                   </div>
                 </div>
@@ -261,6 +240,7 @@ export default function OrderDetailsPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </main>
   );
 }

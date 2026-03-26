@@ -32,10 +32,8 @@ export default function ContactPage() {
           {/* Contact Info */}
           <div className="space-y-4">
             {[
-              { icon: Mail, title: "Email Us", info: "hello@luxee.in", sub: "We reply within 24 hours" },
-              { icon: Phone, title: "Call Us", info: "+91 98765 43210", sub: "Mon-Sat, 10am-6pm IST" },
+              { icon: Mail, title: "Email Us", info: "luxee.co.in@gmail.com", sub: "We reply within 24 hours" },
               { icon: MapPin, title: "Visit Us", info: "Mumbai, Maharashtra", sub: "India" },
-              { icon: Clock, title: "Business Hours", info: "Mon - Sat: 10am - 6pm", sub: "Sunday: Closed" },
             ].map(({ icon: Icon, title, info, sub }, i) => (
               <div key={i} className="flex items-start gap-4 p-5 rounded-2xl bg-[#fafafa] border border-black/[0.03]">
                 <div className="w-10 h-10 bg-gold-50 rounded-xl flex items-center justify-center flex-shrink-0">

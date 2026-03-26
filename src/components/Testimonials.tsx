@@ -3,8 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Quote, Send } from 'lucide-react';
-import { db } from '@/lib/firebase';
-import { collection, addDoc, onSnapshot, query, orderBy, Timestamp, where } from 'firebase/firestore';
 
 interface Review {
   id: string;
@@ -15,8 +13,13 @@ interface Review {
   productId?: string;
 }
 
-export const Testimonials = ({ productId }: { productId?: string }) => {
-  const [reviews, setReviews] = useState<Review[]>([]);
+interface TestimonialsProps {
+  productId?: string;
+  initialReviews?: Review[];
+}
+
+export const Testimonials = ({ productId, initialReviews = [] }: TestimonialsProps) => {
+  const [reviews] = useState<Review[]>(initialReviews);
   const [current, setCurrent] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', text: '', rating: 5 });
@@ -31,22 +34,9 @@ export const Testimonials = ({ productId }: { productId?: string }) => {
         setHasOrdered(true);
       }
     } else if (!productId) {
-      setHasOrdered(true); // Allow general reviews if not on product page
+      setHasOrdered(true);
     }
   }, [productId]);
-
-  // Load reviews from Firestore
-  useEffect(() => {
-    const q = query(collection(db, 'reviews'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, (snap) => {
-      let r = snap.docs.map(d => ({ id: d.id, ...d.data() })) as Review[];
-      if (productId) {
-        r = r.filter(rev => rev.productId === productId);
-      }
-      setReviews(r);
-    });
-    return () => unsub();
-  }, []);
 
   // Auto-rotate
   useEffect(() => {
@@ -62,12 +52,15 @@ export const Testimonials = ({ productId }: { productId?: string }) => {
     if (!formData.name.trim() || !formData.text.trim()) return;
     setSubmitting(true);
     try {
-      await addDoc(collection(db, 'reviews'), {
-        name: formData.name.trim(),
-        text: formData.text.trim(),
-        rating: formData.rating,
-        createdAt: Timestamp.now(),
-        productId: productId || 'general'
+      await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          text: formData.text.trim(),
+          rating: formData.rating,
+          productId: productId || 'general',
+        }),
       });
       setSubmitted(true);
       setFormData({ name: '', text: '', rating: 5 });

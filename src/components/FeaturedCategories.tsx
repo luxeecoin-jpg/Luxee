@@ -10,28 +10,28 @@ const CATEGORIES = [
     name: "For Him", 
     description: "Bold, masculine fragrances", 
     href: "/shop?category=HIM", 
-    image: "/product_him_1.png",
+    emoji: "🧔",
     bg: "from-slate-100 to-zinc-50" 
   },
   { 
     name: "For Her", 
     description: "Elegant, feminine scents", 
     href: "/shop?category=HER", 
-    image: "/product_her_1.png",
+    emoji: "💐",
     bg: "from-rose-50 to-pink-50" 
   },
   { 
     name: "Premium Attars", 
     description: "Traditional & luxurious", 
     href: "/shop?category=ATTAR", 
-    image: "/product_him_2.png",
+    emoji: "✨",
     bg: "from-amber-50 to-yellow-50" 
   },
   { 
     name: "Gift Sets", 
     description: "Curated for gifting", 
     href: "/shop?category=GIFTING", 
-    image: "/product_her_2.png",
+    emoji: "🎁",
     bg: "from-violet-50 to-indigo-50" 
   },
 ];
@@ -91,13 +91,11 @@ export const FeaturedCategories = () => {
             >
               <Link href={cat.href} className="block group h-full">
                 <div className={`relative bg-gradient-to-br ${cat.bg} rounded-2xl overflow-hidden aspect-[3/4] md:aspect-[4/5] border border-black/[0.03] h-full`}>
-                  {/* Image */}
-                  <div className="absolute inset-0 flex items-center justify-center p-8 md:p-12">
-                    <img 
-                      src={cat.image} 
-                      alt={cat.name} 
-                      className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 mix-blend-multiply"
-                    />
+                  {/* Emoji Icon */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-6xl md:text-7xl group-hover:scale-110 transition-transform duration-700">
+                      {cat.emoji}
+                    </span>
                   </div>
                   
                   {/* Bottom Info */}

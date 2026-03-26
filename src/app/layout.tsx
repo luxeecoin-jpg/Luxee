@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Playfair_Display, Inter } from "next/font/google";
 import { CartProvider } from "@/hooks/useCart";
+import { ClerkProvider } from "@clerk/nextjs";
 import { CartDrawer } from "@/components/CartDrawer";
+import { Suspense } from 'react';
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -22,23 +24,23 @@ export const metadata: Metadata = {
   keywords: ["perfume", "fragrance", "luxury", "attar", "Luxee", "premium perfumes"],
 };
 
-import { Suspense } from 'react';
-
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${playfair.variable} ${inter.variable} font-sans antialiased`}>
-        <CartProvider>
-          <Suspense fallback={null}>
-            {children}
-          </Suspense>
-          <CartDrawer />
-        </CartProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={`${playfair.variable} ${inter.variable} font-sans antialiased`}>
+          <CartProvider>
+            <Suspense fallback={null}>
+              {children}
+            </Suspense>
+            <CartDrawer />
+          </CartProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

@@ -3,15 +3,18 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { useProducts } from '@/hooks/useProducts';
 import { ArrowRight, Zap, Clock } from 'lucide-react';
+import Image from 'next/image';
+import type { Product } from '@/lib/data';
 
-export const CrazyDeals = () => {
-  const { products, loading } = useProducts();
+interface CrazyDealsProps {
+  products: Product[];
+}
 
+export const CrazyDeals = ({ products }: CrazyDealsProps) => {
   const dealProducts = products.filter(p => p.section === "CRAZY DEALS");
 
-  if (loading || dealProducts.length === 0) return null;
+  if (dealProducts.length === 0) return null;
 
   return (
     <section className="w-full py-10 md:py-16 bg-gradient-to-b from-[#fef8f5] to-white">
@@ -33,9 +36,10 @@ export const CrazyDeals = () => {
         {/* Deal Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {dealProducts.slice(0, 3).map((deal, index) => {
-            const discountPercent = deal.oldPrice > 0
-              ? Math.round(((deal.oldPrice - deal.price) / deal.oldPrice) * 100)
+            const discountPercent = (deal.oldPrice ?? 0) > 0
+              ? Math.round((((deal.oldPrice ?? 0) - deal.price) / (deal.oldPrice ?? 1)) * 100)
               : 0;
+            const isDataUrl = deal.image?.startsWith('data:');
 
             return (
               <motion.div
@@ -55,11 +59,21 @@ export const CrazyDeals = () => {
 
                     {/* Image */}
                     <div className="relative aspect-[4/3] bg-[#fafafa] p-8">
-                      <img 
-                        src={deal.image} 
-                        alt={deal.name} 
-                        className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700" 
-                      />
+                      {isDataUrl ? (
+                        <img 
+                          src={deal.image} 
+                          alt={deal.name} 
+                          className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700" 
+                        />
+                      ) : (
+                        <Image
+                          src={deal.image}
+                          alt={deal.name}
+                          fill
+                          className="object-contain p-8 group-hover:scale-110 transition-transform duration-700"
+                          sizes="(max-width: 768px) 100vw, 33vw"
+                        />
+                      )}
                     </div>
 
                     {/* Info */}
@@ -74,7 +88,7 @@ export const CrazyDeals = () => {
                       <h3 className="text-base font-bold text-[#1a1a1a] tracking-tight mb-2">{deal.name}</h3>
                       <div className="flex items-baseline gap-2 mb-4">
                         <span className="text-lg font-bold text-red-500">₹{deal.price}</span>
-                        {deal.oldPrice > deal.price && (
+                        {(deal.oldPrice ?? 0) > deal.price && (
                           <span className="text-sm text-black/25 line-through">₹{deal.oldPrice}</span>
                         )}
                       </div>

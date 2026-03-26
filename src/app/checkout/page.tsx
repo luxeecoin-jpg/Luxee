@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useCart } from '@/hooks/useCart';
-import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useUser } from '@clerk/nextjs';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Header } from '@/components/Header';
 import { MapPin, Phone, User, Package, ChevronRight, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
@@ -23,8 +21,7 @@ export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart();
   const [step, setStep] = useState<CheckoutStep>('address');
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const { user, isLoaded } = useUser();
   const router = useRouter();
 
   const [address, setAddress] = useState({
@@ -39,23 +36,18 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (!u && !authLoading) {
-        router.push('/login?redirect=/checkout');
-      }
-      setUser(u);
-      if (u) {
-        setAddress(prev => ({ 
-          ...prev, 
-          email: u.email || '', 
-          fullName: u.displayName || '',
-          phone: u.phoneNumber || ''
-        }));
-      }
-      setAuthLoading(false);
-    });
-    return () => unsub();
-  }, [authLoading, router]);
+    if (!isLoaded) return;
+    if (!user) {
+      router.push('/login?redirect=/checkout');
+      return;
+    }
+    setAddress(prev => ({ 
+      ...prev, 
+      email: user.emailAddresses[0]?.emailAddress || '', 
+      fullName: user.fullName || '',
+      phone: user.primaryPhoneNumber?.phoneNumber || ''
+    }));
+  }, [user, isLoaded, router]);
 
   const handleRazorpayPayment = async () => {
     if (!user) return;
@@ -63,13 +55,12 @@ export default function CheckoutPage() {
 
     const options = {
       key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_YOUR_KEY_HERE",
-      amount: totalPrice * 100, // Razorpay expects amount in paise
+      amount: totalPrice * 100, 
       currency: "INR",
       name: "LUXEE",
       description: "Premium Fragrance Purchase",
       image: "/logo.png",
       handler: function (response: any) {
-        // Payment successful
         handlePlaceOrder(response.razorpay_payment_id);
       },
       prefill: {
@@ -91,44 +82,40 @@ export default function CheckoutPage() {
     if (!user) return;
     setLoading(true);
     try {
-      // 1. Save order to Firestore
-      const orderData = {
-        userId: user.uid,
-        paymentId: paymentId || 'COD',
-        customerName: address.fullName,
-        customerEmail: address.email,
-        customerPhone: address.phone,
-        shippingAddress: {
-          street: address.street,
-          apartment: address.apartment,
-          city: address.city,
-          state: address.state,
-          pincode: address.pincode,
-        },
-        items: items.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          size: item.size,
-          image: item.image
-        })),
-        totalPrice,
-        status: 'placed',
-        createdAt: serverTimestamp(),
-      };
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentId: paymentId || 'COD',
+          customerName: address.fullName,
+          customerEmail: address.email,
+          customerPhone: address.phone,
+          shippingAddress: {
+            street: address.street,
+            apartment: address.apartment,
+            city: address.city,
+            state: address.state,
+            pincode: address.pincode,
+          },
+          items: items.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            size: item.size,
+            image: item.image
+          })),
+          totalPrice,
+        }),
+      });
 
-      await addDoc(collection(db, 'orders'), orderData);
-
-      // 2. Mock: Also update completedOrders in localStorage for the review system
-      const purchasedIds = items.map(item => item.id);
-      const existing = JSON.parse(localStorage.getItem('completedOrders') || '[]');
-      const newOrders = Array.from(new Set([...existing, ...purchasedIds]));
-      localStorage.setItem('completedOrders', JSON.stringify(newOrders));
-
-      // 3. Success steps
-      setStep('success');
-      clearCart();
+      const result = await res.json();
+      if (result.success) {
+        setStep('success');
+        clearCart();
+      } else {
+        throw new Error(result.error);
+      }
     } catch (error) {
       console.error("Order placement failed:", error);
       alert("Failed to place order. Please try again.");
@@ -137,7 +124,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (authLoading) {
+  if (!isLoaded) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-black/20" />
@@ -149,7 +136,7 @@ export default function CheckoutPage() {
     return (
       <main className="min-h-screen bg-white">
         <Header />
-        <div className="container mx-auto px-4 py-20 text-center">
+        <div className="container mx-auto px-4 py-20 pt-32 md:pt-40 text-center">
           <Package className="w-16 h-16 mx-auto text-black/10 mb-6" />
           <h1 className="text-2xl font-bold mb-2">Your Bag is Empty</h1>
           <p className="text-black/40 mb-8">Add components to your bag before checking out.</p>
@@ -166,7 +153,7 @@ export default function CheckoutPage() {
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       <Header />
       
-      <div className="container mx-auto px-4 py-12 max-w-5xl">
+      <div className="container mx-auto px-4 pt-28 md:pt-36 pb-12 max-w-5xl">
         {step !== 'success' && (
           <div className="flex items-center gap-4 mb-12 overflow-x-auto pb-4 no-scrollbar">
             {[
@@ -188,6 +175,8 @@ export default function CheckoutPage() {
         )}
 
         <AnimatePresence mode="wait">
+          {/* ... (UI components remain mostly the same, just removed Firebase imports and logic) ... */}
+          {/* I'll use a direct rewrite here as it's cleaner */}
           {step === 'address' && (
             <motion.div 
               key="address"

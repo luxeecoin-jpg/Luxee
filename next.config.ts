@@ -1,10 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // @ts-ignore
-  eslint: {
-    ignoreDuringBuilds: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+    // Allow data: URLs for base64-encoded product images
+    dangerouslyAllowSVG: true,
+    unoptimized: true,
   },
+  serverExternalPackages: ["@prisma/client"],
 };
 
 export default nextConfig;

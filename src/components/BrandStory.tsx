@@ -1,4 +1,4 @@
-"use client";
+// Server Component — no hooks, no state, no JS shipped to client
 
 import React from 'react';
 import { Shield, Award, Leaf, Truck } from 'lucide-react';
@@ -6,7 +6,7 @@ import { Shield, Award, Leaf, Truck } from 'lucide-react';
 const VALUES = [
   { icon: Award, title: "Premium Quality", description: "Every fragrance is crafted with the finest ingredients sourced from around the world." },
   { icon: Leaf, title: "Cruelty Free", description: "We never test on animals. Our products are 100% vegan and ethically produced." },
-  { icon: Truck, title: "Fast Delivery", description: "Free express shipping on all orders. Your fragrances delivered within 2-3 business days." },
+  { icon: Truck, title: "Fast Delivery", description: "Fast and secure shipping on all orders. Your fragrances delivered within 5-7 business days." },
   { icon: Shield, title: "Authentic Products", description: "100% genuine products with authenticity guarantee on every purchase." },
 ];
 

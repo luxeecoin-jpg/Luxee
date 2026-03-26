@@ -10,9 +10,8 @@ const FAQ_SECTIONS = [
   {
     title: "Orders & Shipping",
     faqs: [
-      { q: "How long does delivery take?", a: "Standard delivery takes 3-5 business days across India. Express delivery is available for select pin codes and typically arrives within 1-2 business days." },
-      { q: "Do you offer free shipping?", a: "Yes! We offer free shipping on all orders above ₹499. Orders below ₹499 have a flat shipping fee of ₹49." },
-      { q: "Can I track my order?", a: "Absolutely. Once your order is shipped, you'll receive a tracking link via email and SMS to track your package in real-time." },
+      { q: "How long does delivery take?", a: "Standard delivery takes 5-7 business days across India. In case of any emergency or unforeseen situations, the order might be slightly delayed." },
+      { q: "Do you offer free shipping?", a: "No, we don't give free shipping." },
       { q: "Do you ship internationally?", a: "Currently, we ship only within India. We're working on expanding to international markets soon." },
     ]
   },
@@ -22,21 +21,19 @@ const FAQ_SECTIONS = [
       { q: "Are your perfumes authentic?", a: "Yes, all Luxee products are 100% authentic with a genuine quality guarantee. We source our ingredients from premium suppliers worldwide." },
       { q: "How long do the fragrances last?", a: "Our Eau de Parfum formulations are designed for all-day longevity, typically lasting 8-12 hours depending on skin type and environmental conditions." },
       { q: "Are your products cruelty-free?", a: "Yes, all Luxee products are cruelty-free and never tested on animals. We are committed to ethical production practices." },
-      { q: "What if I don't like the smell?", a: "We offer a 7-day return policy. If you're not satisfied with your purchase, you can return the product within 7 days for a full refund." },
     ]
   },
   {
     title: "Returns & Refunds",
     faqs: [
       { q: "What is your return policy?", a: "We accept returns within 7 days of delivery. Products must be unused and in their original packaging. Refunds are processed within 5-7 business days." },
-      { q: "How do I initiate a return?", a: "Simply email us at luxee.co.in@gmail.com with your order number and reason for return. Our team will guide you through the process." },
-      { q: "Can I exchange a product?", a: "Yes, exchanges are available for a different fragrance of the same value. Contact our support team to arrange an exchange." },
+      { q: "Can I exchange a product?", a: "No, you cannot exchange the product." },
     ]
   },
   {
     title: "Account & Payments",
     faqs: [
-      { q: "What payment methods do you accept?", a: "We accept all major credit/debit cards, UPI, net banking, and popular wallets like PhonePe and Google Pay." },
+      { q: "What payment methods do you accept?", a: "We only accept cash on delivery and UPI." },
       { q: "Is my payment information secure?", a: "Yes, all payments are processed through secure, encrypted gateways. We never store your card details on our servers." },
       { q: "Do I need an account to shop?", a: "While you can browse without an account, creating one allows you to track orders, save favorites, and access exclusive member-only deals." },
     ]

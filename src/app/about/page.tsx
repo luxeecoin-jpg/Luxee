@@ -49,7 +49,7 @@ export default function AboutPage() {
               </p>
             </div>
             <div className="aspect-square rounded-2xl bg-gradient-to-br from-gold-50 to-luxe-50 flex items-center justify-center">
-              <img src="/product_him_1.png" alt="Luxee Product" className="w-3/4 h-3/4 object-contain drop-shadow-2xl" />
+              <span className="text-6xl md:text-8xl font-serif font-black tracking-[0.2em] text-gold-600/20">L</span>
             </div>
           </div>
         </div>

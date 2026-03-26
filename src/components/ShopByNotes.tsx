@@ -5,12 +5,12 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 
 const NOTES = [
-  { name: "ROSE", description: "Romantic & Timeless", image: "/note_rose.png", color: "from-pink-50 to-rose-50" },
-  { name: "CITRUSY", description: "Fresh & Zesty", image: "/note_citrus.png", color: "from-yellow-50 to-amber-50" },
-  { name: "WHITE FLORAL", description: "Elegant & Pure", image: "/note_rose.png", color: "from-violet-50 to-purple-50" },
-  { name: "AQUATIC", description: "Cool & Refreshing", image: "/note_citrus.png", color: "from-cyan-50 to-sky-50" },
-  { name: "MUSK", description: "Deep & Sensual", image: "/note_musk.png", color: "from-stone-100 to-neutral-50" },
-  { name: "SPICY", description: "Bold & Warm", image: "/note_woody.png", color: "from-orange-50 to-red-50" },
+  { name: "ROSE", description: "Romantic & Timeless", emoji: "🌹", color: "from-pink-50 to-rose-50" },
+  { name: "CITRUSY", description: "Fresh & Zesty", emoji: "🍋", color: "from-yellow-50 to-amber-50" },
+  { name: "WHITE FLORAL", description: "Elegant & Pure", emoji: "🌸", color: "from-violet-50 to-purple-50" },
+  { name: "AQUATIC", description: "Cool & Refreshing", emoji: "🌊", color: "from-cyan-50 to-sky-50" },
+  { name: "MUSK", description: "Deep & Sensual", emoji: "🤎", color: "from-stone-100 to-neutral-50" },
+  { name: "SPICY", description: "Bold & Warm", emoji: "🔥", color: "from-orange-50 to-red-50" },
 ];
 
 export const ShopByNotes = () => {
@@ -35,12 +35,10 @@ export const ShopByNotes = () => {
                 className="flex flex-col items-center group cursor-pointer"
               >
                 <div className={`w-20 h-20 md:w-28 md:h-28 rounded-full bg-gradient-to-br ${note.color} p-1 transition-all duration-500 group-hover:shadow-lg group-hover:scale-105`}>
-                  <div className="w-full h-full rounded-full bg-white overflow-hidden flex items-center justify-center p-3 md:p-4">
-                    <img 
-                      src={note.image} 
-                      alt={note.name} 
-                      className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
-                    />
+                  <div className="w-full h-full rounded-full bg-white overflow-hidden flex items-center justify-center">
+                    <span className="text-2xl md:text-4xl group-hover:scale-110 transition-transform duration-500">
+                      {note.emoji}
+                    </span>
                   </div>
                 </div>
                 <span className="mt-3 text-[9px] md:text-[10px] font-bold tracking-[0.15em] text-[#1a1a1a] group-hover:text-gold-600 transition-colors uppercase">

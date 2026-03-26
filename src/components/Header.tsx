@@ -1,25 +1,22 @@
 "use client";
 
-import React, { useState } from 'react';
-import { ShoppingCart, Search, Menu, User, Zap, X, Heart } from 'lucide-react';
-import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import React, { useState, useEffect } from 'react';
+import { ShoppingCart, Search, Menu, User, X } from 'lucide-react';
+import { useUser, SignInButton, useClerk } from '@clerk/nextjs';
 import Link from 'next/link';
 import { useCart } from '@/hooks/useCart';
 import { useRouter } from 'next/navigation';
 
 export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const { user, isSignedIn } = useUser();
   const [searchValue, setSearchValue] = useState('');
   const { totalItems, setIsCartOpen } = useCart();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
 
-  React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
+  useEffect(() => {
+    setIsMounted(true);
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -64,27 +61,29 @@ export const Header = () => {
 
         {/* Right - Icons */}
         <div className="flex items-center gap-3 md:gap-5 flex-1 justify-end">
-          {user ? (
+          {isSignedIn ? (
             <div className="flex items-center gap-4">
               <Link href="/orders" className="flex items-center gap-2 hover:text-black transition-colors border-r border-black/10 pr-4">
                 <span className="text-[9px] font-black hidden lg:inline-block tracking-widest">My Orders</span>
               </Link>
-              <Link href="/account" className="flex items-center gap-2 hover:text-gold-600 transition-colors">
-                <span className="text-[9px] font-black hidden lg:inline-block tracking-widest">Hi, {user.displayName || 'User'}</span>
-                <div className="w-8 h-8 rounded-full bg-black/[0.04] flex items-center justify-center hover:bg-black/[0.08] transition-colors">
-                  <User className="w-4 h-4" />
+              <Link href="/account" className="flex items-center gap-2 group">
+                <span className="text-[9px] font-black hidden lg:inline-block tracking-widest group-hover:text-black/80 transition-colors">Hi, {user.firstName || 'User'}</span>
+                <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-[10px] font-bold uppercase hover:scale-105 transition-transform">
+                  {user.firstName?.charAt(0) || user.emailAddresses[0].emailAddress.charAt(0)}
                 </div>
               </Link>
             </div>
           ) : (
-            <Link href="/login" className="w-8 h-8 rounded-full bg-black/[0.04] flex items-center justify-center hover:bg-black/[0.08] transition-colors">
-              <User className="w-4 h-4" />
-            </Link>
+            <div className="w-8 h-8 rounded-full bg-black/[0.04] flex items-center justify-center hover:bg-black/[0.08] transition-colors">
+              <SignInButton mode="modal">
+                <button><User className="w-4 h-4" /></button>
+              </SignInButton>
+            </div>
           )}
 
           <button onClick={() => setIsCartOpen(true)} className="relative cursor-pointer w-8 h-8 rounded-full bg-black/[0.04] flex items-center justify-center hover:bg-black/[0.08] transition-colors">
             <ShoppingCart className="w-4 h-4" />
-            {totalItems > 0 && (
+            {isMounted && totalItems > 0 && (
               <span className="absolute -top-1 -right-1 bg-black text-white text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                 {totalItems}
               </span>
@@ -125,7 +124,7 @@ export const Header = () => {
          <ul className="flex flex-col px-4 gap-1">
             {[
               { href: "/shop", label: "SHOP ALL" },
-              { href: "/orders", label: "MY ORDERS", highlight: user ? true : false },
+              { href: "/orders", label: "MY ORDERS", highlight: isSignedIn ? true : false },
               { href: "/shop?section=BESTSELLERS", label: "BESTSELLERS" },
               { href: "/shop?category=HIM", label: "FOR HIM" },
               { href: "/shop?category=HER", label: "FOR HER" },

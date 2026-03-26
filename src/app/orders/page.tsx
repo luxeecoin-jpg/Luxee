@@ -1,56 +1,35 @@
-"use client";
-
-import React, { useState, useEffect } from 'react';
-import { auth, db } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { currentUser } from '@clerk/nextjs/server';
+import prisma from '@/lib/prisma';
+import * as motion from 'framer-motion/client';
 import { Header } from '@/components/Header';
-import { Package, ChevronRight, Loader2, Calendar, CreditCard, MapPin } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { 
+  Package, 
+  ChevronRight, 
+  Calendar, 
+  CreditCard, 
+  MapPin, 
+  CheckCircle2, 
+  Clock, 
+  Truck, 
+  ShoppingBag,
+  ArrowLeft
+} from 'lucide-react';
+import { Footer } from '@/components/Footer';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
-interface Order {
-  id: string;
-  createdAt: any;
-  status: string;
-  totalPrice: number;
-  items: any[];
-  paymentId: string;
-}
+export default async function OrdersPage() {
+  const user = await currentUser();
 
-export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const router = useRouter();
+  if (!user) {
+    redirect('/login?redirect=/orders');
+  }
 
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      if (u) {
-        try {
-          const q = query(
-            collection(db, 'orders'),
-            where('userId', '==', u.uid),
-            orderBy('createdAt', 'desc')
-          );
-          const querySnapshot = await getDocs(q);
-          const ordersData: Order[] = [];
-          querySnapshot.forEach((doc) => {
-            ordersData.push({ id: doc.id, ...doc.data() } as Order);
-          });
-          setOrders(ordersData);
-        } catch (error) {
-          console.error("Error fetching orders:", error);
-        }
-      } else {
-        router.push('/login?redirect=/orders');
-      }
-      setLoading(false);
-    });
-    return () => unsub();
-  }, [router]);
+  const orders = await prisma.order.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'desc' }
+  });
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -62,14 +41,6 @@ export default function OrdersPage() {
       default: return 'text-black/40 bg-black/5';
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-black/20" />
-      </div>
-    );
-  }
 
   return (
     <main className="min-h-screen bg-[#fafafa]">
@@ -104,7 +75,7 @@ export default function OrdersPage() {
           </motion.div>
         ) : (
           <div className="space-y-4">
-            {orders.map((order, idx) => (
+            {orders.map((order: any, idx: number) => (
               <motion.div
                 key={order.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -131,7 +102,7 @@ export default function OrdersPage() {
                           <div className="flex items-center gap-1.5">
                             <Calendar className="w-3 h-3" />
                             <span className="text-[9px] font-bold uppercase tracking-widest">
-                              {order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Processing...'}
+                              {order.createdAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </span>
                           </div>
                           <div className="flex items-center gap-1.5">
@@ -144,7 +115,7 @@ export default function OrdersPage() {
 
                     <div className="flex items-center gap-4">
                       <div className="hidden sm:flex -space-x-3">
-                        {order.items.slice(0, 3).map((item, i) => (
+                        {order.items.slice(0, 3).map((item: any, i: number) => (
                           <img 
                             key={i}
                             src={item.image} 
