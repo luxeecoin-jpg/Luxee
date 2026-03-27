@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
     ],
     // Allow data: URLs for base64-encoded product images
     dangerouslyAllowSVG: true,
-    unoptimized: true,
   },
   serverExternalPackages: ["@prisma/client"],
 };

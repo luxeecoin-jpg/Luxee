@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { currentUser } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
 import { Header } from '@/components/Header';
@@ -9,16 +9,10 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { SignOutButton } from '@clerk/nextjs';
 
-export default async function AccountPage() {
-  const user = await currentUser();
-
-  if (!user) {
-    redirect('/login?redirect=/account');
-  }
-
-  // Fetch orders from PostgreSQL via Prisma
+// --- Streamed async component for order history ---
+async function OrderHistory({ userId }: { userId: string }) {
   const orders = await prisma.order.findMany({
-    where: { userId: user.id },
+    where: { userId },
     orderBy: { createdAt: 'desc' }
   });
 
@@ -34,13 +28,122 @@ export default async function AccountPage() {
   };
 
   return (
+    <>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white p-6 rounded-3xl border border-black/5 flex items-center gap-4">
+          <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center"><Package className="w-5 h-5" /></div>
+          <div>
+            <p className="text-[20px] font-black">{orders.length}</p>
+            <p className="text-[9px] font-black uppercase opacity-30 mt-1">Total Orders</p>
+          </div>
+        </div>
+        <div className="bg-white p-6 rounded-3xl border border-black/5 flex items-center gap-4">
+          <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center"><ShoppingBag className="w-5 h-5" /></div>
+          <div>
+            <p className="text-[20px] font-black">{orders.filter((o: any) => o.status !== 'delivered' && o.status !== 'cancelled').length}</p>
+            <p className="text-[9px] font-black uppercase opacity-30 mt-1">Active</p>
+          </div>
+        </div>
+      </div>
+
+      <section>
+        <div className="flex items-center justify-between mb-8 px-2">
+          <h2 className="text-sm font-black uppercase tracking-[0.2em] opacity-40">Order History</h2>
+          <Link href="/orders" className="text-[9px] font-black border-b border-black uppercase tracking-widest hover:opacity-60 transition-opacity">View All</Link>
+        </div>
+
+        <div className="space-y-4">
+          {orders.length === 0 ? (
+            <div className="bg-white/40 p-16 rounded-[2.5rem] border border-dashed border-black/10 text-center">
+              <Package className="w-12 h-12 text-black/5 mx-auto mb-4" />
+              <p className="text-[10px] font-black uppercase opacity-30 tracking-[0.2em]">No order history found</p>
+            </div>
+          ) : (
+            orders.slice(0, 5).map((order: any) => (
+            <motion.div
+              key={order.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <Link 
+                href={`/orders/${order.id}`}
+                className="bg-white p-6 rounded-[2rem] border border-black/5 group hover:border-black/20 transition-all flex items-center justify-between shadow-sm hover:shadow-xl hover:shadow-black/[0.02]"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-[#fcfcfc] rounded-2xl flex items-center justify-center border border-black/[0.03] group-hover:bg-black group-hover:text-white transition-colors">
+                    <Package className="w-5 h-5 opacity-40 group-hover:opacity-100" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-xs font-black uppercase tracking-tight">Order #{order.id.slice(-8).toUpperCase()}</p>
+                      <span className={`text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${getStatusColor(order.status)}`}>
+                        {order.status}
+                      </span>
+                    </div>
+                    <p className="text-[9px] font-bold opacity-30 uppercase tracking-widest">
+                       {order.createdAt.toLocaleDateString('en-IN')} · ₹{order.totalPrice}
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-black/10 group-hover:text-black group-hover:translate-x-1 transition-all" />
+              </Link>
+            </motion.div>
+          ))
+        )}
+        
+        {orders.length > 5 && (
+          <Link 
+            href="/orders" 
+            className="flex items-center justify-center py-4 text-[9px] font-black uppercase tracking-widest text-black/40 hover:text-black transition-colors"
+          >
+            And {orders.length - 5} more orders...
+          </Link>
+        )}
+        </div>
+      </section>
+    </>
+  );
+}
+
+// --- Skeleton fallback for order history ---
+function OrderHistorySkeleton() {
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white p-6 rounded-3xl border border-black/5 flex items-center gap-4 h-[100px] skeleton-shimmer shadow-sm" />
+        <div className="bg-white p-6 rounded-3xl border border-black/5 flex items-center gap-4 h-[100px] skeleton-shimmer shadow-sm" />
+      </div>
+
+      <section>
+        <div className="flex items-center justify-between mb-8 px-2 animate-pulse">
+          <div className="h-4 w-32 bg-black/5 rounded" />
+          <div className="h-3 w-16 bg-black/5 rounded" />
+        </div>
+        <div className="space-y-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="bg-white p-6 rounded-[2rem] border border-black/5 h-[100px] skeleton-shimmer shadow-sm" />
+          ))}
+        </div>
+      </section>
+    </>
+  );
+}
+
+export default async function AccountPage() {
+  const user = await currentUser();
+
+  if (!user) {
+    redirect('/login?redirect=/account');
+  }
+
+  return (
     <main className="min-h-screen bg-[#fafafa]">
       <Header />
       
       <div className="container mx-auto px-4 py-32 max-w-5xl">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Left: User Card */}
+          {/* Left: User Card — renders instantly */}
           <div className="lg:col-span-1 space-y-6">
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
@@ -71,80 +174,11 @@ export default async function AccountPage() {
             </motion.div>
           </div>
 
-          {/* Right Content */}
+          {/* Right Content — order history streams in */}
           <div className="lg:col-span-2 space-y-8">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white p-6 rounded-3xl border border-black/5 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center"><Package className="w-5 h-5" /></div>
-                  <div>
-                    <p className="text-[20px] font-black">{orders.length}</p>
-                    <p className="text-[9px] font-black uppercase opacity-30 mt-1">Total Orders</p>
-                  </div>
-                </div>
-                <div className="bg-white p-6 rounded-3xl border border-black/5 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-black/5 rounded-2xl flex items-center justify-center"><ShoppingBag className="w-5 h-5" /></div>
-                  <div>
-                    <p className="text-[20px] font-black">{orders.filter((o: any) => o.status !== 'delivered' && o.status !== 'cancelled').length}</p>
-                    <p className="text-[9px] font-black uppercase opacity-30 mt-1">Active</p>
-                  </div>
-                </div>
-              </div>
-
-              <section>
-                <div className="flex items-center justify-between mb-8 px-2">
-                  <h2 className="text-sm font-black uppercase tracking-[0.2em] opacity-40">Order History</h2>
-                  <Link href="/orders" className="text-[9px] font-black border-b border-black uppercase tracking-widest hover:opacity-60 transition-opacity">View All</Link>
-                </div>
-
-                <div className="space-y-4">
-                  {orders.length === 0 ? (
-                    <div className="bg-white/40 p-16 rounded-[2.5rem] border border-dashed border-black/10 text-center">
-                      <Package className="w-12 h-12 text-black/5 mx-auto mb-4" />
-                      <p className="text-[10px] font-black uppercase opacity-30 tracking-[0.2em]">No order history found</p>
-                    </div>
-                  ) : (
-                    orders.slice(0, 5).map((order: any) => (
-                    <motion.div
-                      key={order.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                    >
-                      <Link 
-                        href={`/orders/${order.id}`}
-                        className="bg-white p-6 rounded-[2rem] border border-black/5 group hover:border-black/20 transition-all flex items-center justify-between shadow-sm hover:shadow-xl hover:shadow-black/[0.02]"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-[#fcfcfc] rounded-2xl flex items-center justify-center border border-black/[0.03] group-hover:bg-black group-hover:text-white transition-colors">
-                            <Package className="w-5 h-5 opacity-40 group-hover:opacity-100" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="text-xs font-black uppercase tracking-tight">Order #{order.id.slice(-8).toUpperCase()}</p>
-                              <span className={`text-[7px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${getStatusColor(order.status)}`}>
-                                {order.status}
-                              </span>
-                            </div>
-                            <p className="text-[9px] font-bold opacity-30 uppercase tracking-widest">
-                               {order.createdAt.toLocaleDateString('en-IN')} · ₹{order.totalPrice}
-                            </p>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-4 h-4 text-black/10 group-hover:text-black group-hover:translate-x-1 transition-all" />
-                      </Link>
-                    </motion.div>
-                  ))
-                )}
-                
-                {orders.length > 5 && (
-                  <Link 
-                    href="/orders" 
-                    className="flex items-center justify-center py-4 text-[9px] font-black uppercase tracking-widest text-black/40 hover:text-black transition-colors"
-                  >
-                    And {orders.length - 5} more orders...
-                  </Link>
-                )}
-              </div>
-            </section>
+            <Suspense fallback={<OrderHistorySkeleton />}>
+              <OrderHistory userId={user.id} />
+            </Suspense>
 
             <section className="bg-black text-white p-10 rounded-[2.5rem] shadow-2xl shadow-black/20 overflow-hidden relative">
               <div className="relative z-10">
@@ -168,3 +202,4 @@ export default async function AccountPage() {
     </main>
   );
 }
+

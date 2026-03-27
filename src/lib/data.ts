@@ -112,6 +112,44 @@ export const getReviews = unstable_cache(
   { revalidate: 300, tags: ['reviews'] }
 );
 
+// Fetch a single product by ID (cached for 5 minutes)
+export const getProductById = unstable_cache(
+  async (id: string): Promise<Product | null> => {
+    try {
+      const product = await prisma.product.findUnique({
+        where: { id },
+      });
+      return product as Product | null;
+    } catch (error) {
+      console.error('Error fetching product by ID:', error);
+      return null;
+    }
+  },
+  ['product-by-id'],
+  { revalidate: 300, tags: ['products'] }
+);
+
+// Fetch related products by category, excluding a given product ID (cached for 5 minutes)
+export const getRelatedProducts = unstable_cache(
+  async (category: string, excludeId: string, limit: number = 4): Promise<Product[]> => {
+    try {
+      const products = await prisma.product.findMany({
+        where: {
+          category,
+          id: { not: excludeId },
+        },
+        take: limit,
+      });
+      return products as Product[];
+    } catch (error) {
+      console.error('Error fetching related products:', error);
+      return [];
+    }
+  },
+  ['related-products'],
+  { revalidate: 300, tags: ['products'] }
+);
+
 /**
  * Performance Optimization Note: 
  * We use unstable_cache for ISR (Incremental Static Regeneration) equivalent in Next.js 15.
