@@ -4,6 +4,8 @@ import { Footer } from '@/components/Footer';
 import { getProducts, getReviews } from '@/lib/data';
 import { ProductDetailContent } from './ProductDetailContent';
 import Link from 'next/link';
+import { currentUser } from '@clerk/nextjs/server';
+import prisma from '@/lib/prisma';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -37,6 +39,22 @@ export default async function ProductPage({ params }: Props) {
     .filter(p => p.id !== id && p.category === product.category)
     .slice(0, 4);
 
+  const user = await currentUser();
+  let canReview = false;
+
+  if (user) {
+    const orders = await prisma.order.findMany({
+      where: {
+        userId: user.id,
+        status: { equals: 'DELIVERED', mode: 'insensitive' }
+      }
+    });
+    canReview = orders.some(order => {
+      const items = order.items as any[];
+      return items?.some((item: any) => item.id === id);
+    });
+  }
+
   return (
     <main className="min-h-screen bg-white">
       <Header />
@@ -44,6 +62,7 @@ export default async function ProductPage({ params }: Props) {
         product={product} 
         relatedProducts={relatedProducts} 
         reviews={reviews}
+        canReview={canReview}
       />
       <Footer />
     </main>

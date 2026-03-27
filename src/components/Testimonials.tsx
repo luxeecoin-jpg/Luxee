@@ -16,27 +16,16 @@ interface Review {
 interface TestimonialsProps {
   productId?: string;
   initialReviews?: Review[];
+  canReview?: boolean;
 }
 
-export const Testimonials = ({ productId, initialReviews = [] }: TestimonialsProps) => {
+export const Testimonials = ({ productId, initialReviews = [], canReview = false }: TestimonialsProps) => {
   const [reviews] = useState<Review[]>(initialReviews);
   const [current, setCurrent] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({ name: '', text: '', rating: 5 });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [hasOrdered, setHasOrdered] = useState(false);
-
-  useEffect(() => {
-    if (productId && typeof window !== 'undefined') {
-      const existing = JSON.parse(localStorage.getItem('completedOrders') || '[]');
-      if (existing.includes(productId)) {
-        setHasOrdered(true);
-      }
-    } else if (!productId) {
-      setHasOrdered(true);
-    }
-  }, [productId]);
 
   // Auto-rotate
   useEffect(() => {
@@ -137,9 +126,9 @@ export const Testimonials = ({ productId, initialReviews = [] }: TestimonialsPro
         <div className="max-w-lg mx-auto mt-10">
           {!showForm ? (
             <div className="text-center">
-              {productId && !hasOrdered ? (
+              {productId && !canReview ? (
                 <p className="text-sm font-semibold text-red-500 bg-red-50 py-3 px-6 rounded-xl border border-red-100 inline-block">
-                  Only verified buyers can review this product. Checkout from the cart to unlock reviews!
+                  Only verified buyers can review this product. Wait until your order is delivered to unlock reviews!
                 </p>
               ) : (
                 <button onClick={() => setShowForm(true)} className="bg-black text-white px-8 py-4 rounded-xl text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-black/90 transition-all">

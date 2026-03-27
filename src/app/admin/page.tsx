@@ -1,17 +1,28 @@
 import React from 'react';
 import { currentUser } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { AdminDashboard } from '@/components/AdminDashboard';
 export default async function AdminPage() {
   const user = await currentUser();
 
   // Basic admin check (this can be improved with Clerk roles)
   // For now, mirroring the existing logic where a specific email or role is required
-  const isAdmin = user?.emailAddresses?.[0]?.emailAddress === process.env.ADMIN_EMAIL || user?.publicMetadata?.role === 'admin';
+  const userEmail = user?.emailAddresses?.[0]?.emailAddress;
+  const adminEmails = [
+    process.env.ADMIN_EMAIL,
+    'luxee.co.in@gmail.com',
+    'vikasparmar605@gmail.com'
+  ].filter(Boolean); // Filter out any undefined values
 
-  if (!user || !isAdmin) {
+  const isAdmin = adminEmails.includes(userEmail) || user?.publicMetadata?.role === 'admin';
+
+  if (!user) {
     redirect('/login?redirect=/admin');
+  }
+
+  if (!isAdmin) {
+    notFound();
   }
 
   // Fetch initial data on server

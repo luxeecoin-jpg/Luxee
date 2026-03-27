@@ -708,6 +708,62 @@ export function AdminDashboard({
                     </div>
 
                     <div>
+                      <label className="text-[10px] font-bold text-black/30 uppercase tracking-widest block mb-2 px-1">Sizes (ML)</label>
+                      <div className="bg-black/5 p-4 rounded-xl space-y-4">
+                        <div className="flex flex-wrap gap-2">
+                          {availableSizes.map(size => (
+                            <button
+                              key={size}
+                              type="button"
+                              onClick={() => toggleSize(size)}
+                              className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                                (editForm.sizes || []).includes(size)
+                                  ? 'bg-black text-white shadow-md shadow-black/20'
+                                  : 'bg-white text-black/60 shadow-sm hover:bg-black/5 hover:text-black'
+                              }`}
+                            >
+                              {size}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="e.g. 75 ML"
+                            value={customSize}
+                            onChange={(e) => setCustomSize(e.target.value)}
+                            className="flex-1 px-4 py-2 text-sm font-bold bg-white text-black rounded-xl outline-none shadow-sm focus:ring-1 focus:ring-black/10"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (customSize.trim() && !availableSizes.includes(customSize.trim().toUpperCase())) {
+                                  const newSize = customSize.trim().toUpperCase();
+                                  setAvailableSizes([...availableSizes, newSize]);
+                                  setEditForm({ ...editForm, sizes: [...(editForm.sizes || []), newSize] });
+                                  setCustomSize('');
+                                }
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (customSize.trim() && !availableSizes.includes(customSize.trim().toUpperCase())) {
+                                const newSize = customSize.trim().toUpperCase();
+                                setAvailableSizes([...availableSizes, newSize]);
+                                setEditForm({ ...editForm, sizes: [...(editForm.sizes || []), newSize] });
+                                setCustomSize('');
+                              }
+                            }}
+                            className="bg-black/10 hover:bg-black/20 text-black px-5 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
                       <label className="text-[10px] font-bold text-black/30 uppercase tracking-widest block mb-2 px-1">Description *</label>
                       <textarea required rows={3} className="w-full p-4 bg-black/5 rounded-xl outline-none text-sm font-bold resize-none" placeholder="Product details..." value={editForm.description || ''} onChange={e => setEditForm({...editForm, description: e.target.value})} />
                     </div>
@@ -754,9 +810,19 @@ export function AdminDashboard({
                     <h3 className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-4">Items Summary</h3>
                     <div className="space-y-3">
                        {selectedOrder.items.map((item: any, i: number) => (
-                         <div key={i} className="flex justify-between items-center text-xs font-bold border-b border-black/5 pb-2">
-                            <span>{item.name} × {item.quantity}</span>
-                            <span>₹{item.price * item.quantity}</span>
+                         <div key={i} className="flex justify-between items-center text-xs font-bold border-b border-black/5 pb-4 mt-2">
+                            <div className="flex items-center gap-3">
+                              {item.image ? (
+                                <img src={item.image} alt={item.name} className="w-12 h-12 object-contain bg-[#fafafa] rounded-lg border border-black/5 p-1" />
+                              ) : (
+                                <div className="w-12 h-12 bg-black/5 rounded-lg flex-shrink-0" />
+                              )}
+                              <div className="flex flex-col">
+                                <span className="text-sm font-black">{item.name}</span>
+                                <span className="text-[10px] text-black/40 uppercase tracking-widest mt-0.5">{item.size || 'Standard'} × {item.quantity}</span>
+                              </div>
+                            </div>
+                            <span className="text-sm">₹{item.price * item.quantity}</span>
                          </div>
                        ))}
                        <div className="pt-4 flex justify-between text-xl font-black">

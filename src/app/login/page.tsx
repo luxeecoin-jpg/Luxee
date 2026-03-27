@@ -16,6 +16,7 @@ function LoginContent() {
       <div className="container mx-auto px-4 flex items-center justify-center pt-28 md:pt-36 pb-16 min-h-[calc(100vh-80px)]">
         <SignIn 
           fallbackRedirectUrl={redirect}
+          routing="hash"
           appearance={{
             elements: {
               rootBox: "mx-auto",

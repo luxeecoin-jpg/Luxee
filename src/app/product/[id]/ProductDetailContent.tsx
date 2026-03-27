@@ -47,9 +47,10 @@ interface ProductDetailContentProps {
   product: Product;
   relatedProducts: Product[];
   reviews: Review[];
+  canReview: boolean;
 }
 
-export function ProductDetailContent({ product, relatedProducts, reviews }: ProductDetailContentProps) {
+export function ProductDetailContent({ product, relatedProducts, reviews, canReview }: ProductDetailContentProps) {
   const [currentImage, setCurrentImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState("50 ML");
   const [quantity, setQuantity] = useState(1);
@@ -254,7 +255,7 @@ export function ProductDetailContent({ product, relatedProducts, reviews }: Prod
           {/* Trust Badges */}
           <div className="grid grid-cols-3 gap-3 pt-2">
             {[
-              { icon: Truck, text: "Free Shipping" },
+              { icon: Truck, text: "Easy Shipping" },
               { icon: RotateCcw, text: "Easy Returns" },
               { icon: Shield, text: "Genuine Product" },
             ].map(({ icon: Icon, text }, i) => (
@@ -275,7 +276,7 @@ export function ProductDetailContent({ product, relatedProducts, reviews }: Prod
 
           {/* Accordions */}
           <div className="pt-2 border-t border-black/[0.06]">
-            <Accordion title="Shipping & Delivery" content="Free shipping on orders above ₹499. Standard delivery within 3-5 business days. Express delivery available for select pin codes." />
+            <Accordion title="Shipping & Delivery" content="shipping take time 5-7 days" />
             <Accordion title="Return Policy" content="Easy 7-day return policy. If you're not satisfied with your purchase, return it within 7 days for a full refund." />
             <Accordion title="Authenticity Guarantee" content="All products sold by Luxee are 100% authentic with brand guarantee. We source directly from manufacturers." />
           </div>
@@ -298,7 +299,7 @@ export function ProductDetailContent({ product, relatedProducts, reviews }: Prod
 
       {/* Reviews Section */}
       <div className="mt-16 md:mt-24 border-t border-black/[0.04] pt-8 -mx-4 md:mx-0">
-        <Testimonials productId={product.id} initialReviews={reviews} />
+        <Testimonials productId={product.id} initialReviews={reviews} canReview={canReview} />
       </div>
     </div>
   );
